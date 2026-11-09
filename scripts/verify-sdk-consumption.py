@@ -2,6 +2,7 @@
 """Verify that plugin restores consumed the prepared SDK archives and exact DLL bytes."""
 import hashlib
 import json
+import os
 from pathlib import Path
 import zipfile
 
@@ -43,7 +44,7 @@ def verify(root=ROOT):
     for project in projects:
         assets = json.loads((root / 'plugins' / project / 'obj/project.assets.json').read_text())
         folders = {str(Path(p).resolve()) for p in assets['packageFolders']}
-        if folders != {str(cache)}:
+        if {os.path.normcase(p) for p in folders} != {os.path.normcase(str(cache))}:
             # Do not print local folder names: they can contain a user's name.
             equivalent_ignoring_case = sum(p.casefold() == str(cache).casefold() for p in folders)
             raise ValueError('SdkConsumedCacheMismatch: ' + project +

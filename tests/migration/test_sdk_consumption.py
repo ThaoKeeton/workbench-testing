@@ -4,6 +4,7 @@ import json
 from pathlib import Path
 import tempfile
 import unittest
+from unittest.mock import patch
 import zipfile
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -70,6 +71,29 @@ class SdkConsumptionTests(unittest.TestCase):
             data['packageFolders'] = {str(root / 'shared-global-cache'): {}}
             assets.write_text(json.dumps(data))
             with self.assertRaisesRegex(ValueError, 'SdkConsumedCacheMismatch'):
+                audit.verify(root)
+
+    def test_extra_fallback_folder_is_refused_even_with_expected_cache(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            cache = self.fixture(root)
+            assets = root / 'plugins/Workbench.Testing.Domain/obj/project.assets.json'
+            data = json.loads(assets.read_text())
+            data['packageFolders'] = {str(cache): {}, str(root / 'shared-fallback'): {}}
+            assets.write_text(json.dumps(data))
+            with self.assertRaisesRegex(ValueError, 'SdkConsumedCacheMismatch'):
+                audit.verify(root)
+
+    def test_cache_comparison_uses_platform_case_semantics(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            cache = self.fixture(root)
+            for project in audit.PROJECTS:
+                assets = root / 'plugins' / project / 'obj/project.assets.json'
+                data = json.loads(assets.read_text())
+                data['packageFolders'] = {str(cache).swapcase(): {}}
+                assets.write_text(json.dumps(data))
+            with patch('os.path.normcase', side_effect=lambda path: str(path).casefold()):
                 audit.verify(root)
 
 
