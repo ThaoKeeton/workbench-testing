@@ -1,0 +1,11 @@
+{
+  "sourceRepository": "https://github.com/ThaoKeeton/project-workbench",
+  "sourceCommit": "b1a3e9c9963c2d75798a6068f99a6270d81bd074",
+  "files": [
+    { "path": "tests/Workbench.Testing.PackageProbe/Program.cs", "sha256": "041cd94a24ceb48bbf598148121779972a90b215488ca27a133fc94ad1b1b122" },
+    { "path": "tests/scripts/TestingManagedPayload.Tests.ps1", "sha256": "3dd07d3ffa282f481b06710167336cc3f064b6e49010968894e45f9badb3a7ca" },
+    { "path": "tests/scripts/TestingPluginPackage.Tests.ps1", "sha256": "c7cd8b84714c4648291dc42490584ca94f9235aa47e0ff21f65ebde8c79eee0a" },
+    { "path": "scripts/TestingPluginDelivery.psm1", "sha256": "b23747d3d31552ac5a719e4ab2ea9d016896939a99a958d06525f25ae1e5ca23" }
+  ],
+  "adaptation": "SourceAcceptance delivery and managed closure paired with a same-build production package; plugin and host commits remain independent."
+}

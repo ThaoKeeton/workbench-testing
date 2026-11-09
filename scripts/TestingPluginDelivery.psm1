@@ -1,6 +1,7 @@
 Set-StrictMode -Version Latest
 if (-not ('WorkbenchTestingManagedAudit' -as [type])) { Add-Type -Path (Join-Path $PSScriptRoot 'TestingManagedPayloadAudit.cs') }
 $script:TestingPayload = @('Fixtures/figma.synthetic.json', 'Fixtures/requirements.synthetic.json', 'Workbench.Testing.deps.json', 'Workbench.Testing.dll', 'Workbench.Testing.Domain.dll', 'Workbench.Testing.Windows.dll', 'Workbench.OwnedLab.exe', 'plugin.json')
+$script:TestingSourcePayload = @($script:TestingPayload + @('Workbench.Testing.SourceAcceptance.dll', 'Workbench.Testing.SourceAcceptance.deps.json'))
 if (-not ('WorkbenchTestingArchiveAudit' -as [type])) {
     Add-Type -TypeDefinition @'
 public static class WorkbenchTestingArchiveAudit {
@@ -136,8 +137,8 @@ function Read-TestingOwnedDescriptor {
     catch { throw 'TestingOwnedHelperDescriptorInvalid' }
 }
 function Assert-TestingManifest {
-    param([byte[]]$Bytes)
-    try { [WorkbenchTestingManagedAudit]::Manifest($Bytes, 'Production') }
+    param([byte[]]$Bytes, [ValidateSet('Production','SourceAcceptance', IgnoreCase=$false)][string]$Profile = 'Production')
+    try { [WorkbenchTestingManagedAudit]::Manifest($Bytes, $Profile) }
     catch { throw 'TestingManifestInvalid' }
 }
 function Read-TestingProvenance {
@@ -158,7 +159,8 @@ function Read-TestingProvenance {
     } catch { throw 'TestingDeliveryProvenanceInvalid' }
 }
 function Read-TestingPluginArchive {
-    param([string]$ZipPath, [object[]]$PayloadRecords)
+    param([string]$ZipPath, [object[]]$PayloadRecords, [ValidateSet('Production','SourceAcceptance', IgnoreCase=$false)][string]$Profile = 'Production')
+    $expected = if ($Profile -ceq 'SourceAcceptance') { $script:TestingSourcePayload } else { $script:TestingPayload }
     for ($part = [IO.Path]::GetFullPath($ZipPath); $part; $part = [IO.Path]::GetDirectoryName($part)) {
         if (((Get-Item -LiteralPath $part -Force).Attributes -band [IO.FileAttributes]::ReparsePoint) -ne 0) { throw 'TestingDeliveryLinkRefused' }
     }
@@ -166,8 +168,8 @@ function Read-TestingPluginArchive {
     $payload = @{}
     try {
         $entries = @($zip.Entries)
-        if (@(Compare-Object $script:TestingPayload @($entries | ForEach-Object FullName) -CaseSensitive).Count -ne 0 -or $entries.Count -ne $script:TestingPayload.Count -or $PayloadRecords.Count -ne $script:TestingPayload.Count) { throw 'TestingPayloadFileListInvalid' }
-        foreach ($name in $script:TestingPayload) {
+        if (@(Compare-Object $expected @($entries | ForEach-Object FullName) -CaseSensitive).Count -ne 0 -or $entries.Count -ne $expected.Count -or $PayloadRecords.Count -ne $expected.Count) { throw 'TestingPayloadFileListInvalid' }
+        foreach ($name in $expected) {
             $entry = @($entries | Where-Object FullName -CEQ $name)
             $record = @($PayloadRecords | Where-Object path -CEQ $name)
             if ($entry.Count -ne 1 -or $record.Count -ne 1 -or $entry[0].Length -gt 16777216 -or $entry[0].Length -lt 1 -or $entry[0].IsEncrypted -or
@@ -187,12 +189,29 @@ function Read-TestingPluginArchive {
             } finally { $stream.Dispose() }
             if ($actual.Length -ne $entry[0].Length -or [WorkbenchTestingArchiveAudit]::Crc($actual) -ne $entry[0].Crc32) { throw 'TestingPayloadCrcMismatch' }
             if ($record[0].length -ne $actual.Length -or $record[0].sha256 -cne [Convert]::ToHexStringLower([Security.Cryptography.SHA256]::HashData($actual))) { throw 'TestingPayloadHashMismatch' }
-            if ($name -ceq 'plugin.json') { Assert-TestingManifest $actual }
-            if ($name -ceq 'Workbench.Testing.deps.json') { try { [WorkbenchTestingManagedAudit]::ValidateJson($actual,'TestingDepsJsonInvalid') } catch { throw 'TestingDepsJsonInvalid' } }
+            if ($name -ceq 'plugin.json') { Assert-TestingManifest $actual $Profile }
+            if ($name.EndsWith('.deps.json',[StringComparison]::Ordinal)) { try { [WorkbenchTestingManagedAudit]::ValidateJson($actual,'TestingDepsJsonInvalid') } catch { throw 'TestingDepsJsonInvalid' } }
             $payload[$name] = $actual
         }
     } finally { $zip.Dispose() }
     return ,$payload
+}
+function Assert-TestingCommonPayload {
+    param([Collections.IDictionary]$Production, [Collections.IDictionary]$Source)
+    foreach ($name in @($script:TestingPayload | Where-Object { $_ -cne 'plugin.json' })) {
+        if ($Production[$name] -isnot [byte[]] -or $Source[$name] -isnot [byte[]] -or
+            -not [Security.Cryptography.CryptographicOperations]::FixedTimeEquals($Production[$name],$Source[$name])) { throw 'TestingProductionPairMismatch' }
+    }
+}
+function Assert-TestingDistinctDeliveryDirectories {
+    param([string]$First, [string]$Second)
+    $a = [IO.Path]::TrimEndingDirectorySeparator([IO.Path]::GetFullPath($First))
+    $b = [IO.Path]::TrimEndingDirectorySeparator([IO.Path]::GetFullPath($Second))
+    $comparison = if ($IsWindows) { [StringComparison]::OrdinalIgnoreCase } else { [StringComparison]::Ordinal }
+    $separator = [IO.Path]::DirectorySeparatorChar
+    $prefixA = if ($a.EndsWith($separator)) { $a } else { $a + $separator }
+    $prefixB = if ($b.EndsWith($separator)) { $b } else { $b + $separator }
+    if ($a.Equals($b,$comparison) -or $a.StartsWith($prefixB,$comparison) -or $b.StartsWith($prefixA,$comparison)) { throw 'TestingProductionPairMismatch' }
 }
 function Assert-TestingOwnedSource {
     param([Collections.IDictionary]$Build, [Collections.IDictionary]$Descriptor)
@@ -323,4 +342,91 @@ function Test-TestingPluginDelivery {
     }
     Write-Host 'Testing delivery verified: independent eight-file ZIP, exact bytes and manifest.'
 }
-Export-ModuleMember -Function New-TestingPluginDelivery, Test-TestingPluginDelivery
+function Test-TestingSourceFixtureDelivery {
+    [CmdletBinding()]
+    param([Parameter(Mandatory)][string]$Directory, [Parameter(Mandatory)][string]$ProductionDirectory,
+        [switch]$RequireCurrentSource, [string]$AppDirectory = (Get-TestingHostAppDirectory))
+    Assert-TestingDistinctDeliveryDirectories $Directory $ProductionDirectory
+    Test-TestingPluginDelivery -Directory $ProductionDirectory -AppDirectory $AppDirectory -RequireCurrentSource:$RequireCurrentSource
+    $productionMetadata = Read-TestingProvenance (Join-Path $ProductionDirectory 'provenance.json')
+    $productionZip = Join-Path $ProductionDirectory 'workbench-testing-plugin-0.2.0.zip'
+    $production = Read-TestingPluginArchive -ZipPath $productionZip -PayloadRecords @($productionMetadata.payload)
+    for ($part = [IO.Path]::GetFullPath($Directory); $part; $part = [IO.Path]::GetDirectoryName($part)) {
+        if (((Get-Item -LiteralPath $part -Force).Attributes -band [IO.FileAttributes]::ReparsePoint) -ne 0) { throw 'TestingDeliveryLinkRefused' }
+    }
+    $zipName = 'workbench-testing-source-acceptance-0.2.0.zip'
+    $files = @('README.md','SHA256SUMS','provenance.json',$zipName)
+    if (@(Compare-Object $files @(Get-ChildItem -LiteralPath $Directory -Force | ForEach-Object Name) -CaseSensitive).Count -ne 0) { throw 'TestingDeliveryFileListInvalid' }
+    foreach ($file in Get-ChildItem -LiteralPath $Directory -Force) { if ($file.PSIsContainer -or ($file.Attributes -band [IO.FileAttributes]::ReparsePoint) -ne 0) { throw 'TestingDeliveryLinkRefused' } }
+    $metadata = Read-TestingProvenance (Join-Path $Directory 'provenance.json')
+    foreach ($key in @('schemaVersion','profile','pluginId','version','apiVersion','minimumHostVersion','sourceCommit','hostSourceCommit','pairedProductionSha256','managed','payload','zip')) {
+        if (-not $metadata.ContainsKey($key)) { throw 'TestingSourceFixtureIdentityInvalid' }
+    }
+    if ($metadata.schemaVersion -ne 1 -or $metadata.profile -cne 'SourceAcceptance' -or $metadata.pluginId -cne 'com.projectworkbench.testing.source-acceptance' -or
+        $metadata.version -cne '0.2.0' -or $metadata.apiVersion -ne 1 -or $metadata.minimumHostVersion -cne '0.4.0' -or
+        $metadata.sourceCommit -cne $productionMetadata.sourceCommit -or $metadata.hostSourceCommit -cne (Get-TestingPinnedHostCommit) -or
+        $metadata.pairedProductionSha256 -cne $productionMetadata.zip.sha256) { throw 'TestingProductionPairMismatch' }
+    $sums = @(Get-Content -LiteralPath (Join-Path $Directory 'SHA256SUMS'))
+    if ($sums.Count -ne 3) { throw 'TestingDeliverySumsInvalid' }
+    foreach ($file in @('README.md','provenance.json',$zipName)) {
+        $expected = (Get-FileHash -LiteralPath (Join-Path $Directory $file) -Algorithm SHA256).Hash.ToLowerInvariant() + '  ' + $file
+        if (@($sums | Where-Object { $_ -ceq $expected }).Count -ne 1) { throw 'TestingDeliveryHashMismatch' }
+    }
+    $zip = Join-Path $Directory $zipName
+    if ($metadata.zip.path -cne $zipName -or $metadata.zip.length -ne (Get-Item $zip).Length -or $metadata.zip.sha256 -cne (Get-FileHash $zip -Algorithm SHA256).Hash.ToLowerInvariant()) { throw 'TestingDeliveryZipMismatch' }
+    $source = Read-TestingPluginArchive -ZipPath $zip -PayloadRecords @($metadata.payload) -Profile SourceAcceptance
+    Assert-TestingCommonPayload $production $source
+    $observed = [WorkbenchTestingManagedAudit]::Audit($source, $AppDirectory, $metadata.sourceCommit, $metadata.hostSourceCommit, 'SourceAcceptance')
+    $recordedDoc = [Text.Json.JsonDocument]::Parse(($metadata.managed | ConvertTo-Json -Depth 50 -Compress))
+    $observedDoc = [Text.Json.JsonDocument]::Parse($observed)
+    try { if (-not [Text.Json.JsonElement]::DeepEquals($recordedDoc.RootElement,$observedDoc.RootElement)) { throw 'TestingManagedAuditMismatch' } }
+    finally { $recordedDoc.Dispose(); $observedDoc.Dispose() }
+    Write-Host 'SourceAcceptance fixture verified: exact ten-file ZIP, seven paired production files, and host-bound managed closure.'
+}
+function New-TestingSourceFixtureDelivery {
+    [CmdletBinding()]
+    param([Parameter(Mandatory)][string]$BuildDirectory, [Parameter(Mandatory)][string]$OutputDirectory,
+        [Parameter(Mandatory)][string]$ProductionDirectory)
+    $repo = Split-Path $PSScriptRoot -Parent
+    Assert-TestingDistinctDeliveryDirectories $OutputDirectory $ProductionDirectory
+    Test-TestingPluginDelivery -Directory $ProductionDirectory -RequireCurrentSource
+    $productionMetadata = Read-TestingProvenance (Join-Path $ProductionDirectory 'provenance.json')
+    for ($part = [IO.Path]::GetFullPath($OutputDirectory); $part; $part = [IO.Path]::GetDirectoryName($part)) {
+        $item = Get-Item -LiteralPath $part -Force -ErrorAction SilentlyContinue
+        if ($null -ne $item -and ($item.Attributes -band [IO.FileAttributes]::ReparsePoint) -ne 0) { throw 'TestingDeliveryLinkRefused' }
+    }
+    if ((Test-Path -LiteralPath $OutputDirectory) -and (-not (Test-Path -LiteralPath $OutputDirectory -PathType Container) -or @(Get-ChildItem -LiteralPath $OutputDirectory -Force).Count -gt 0)) { throw 'TestingDeliveryAlreadyExists' }
+    $stage = Join-Path ([IO.Path]::GetTempPath()) ('testing-source-package-' + [Guid]::NewGuid().ToString('N'))
+    try {
+        New-Item (Join-Path $stage 'Fixtures') -ItemType Directory -Force | Out-Null
+        foreach ($name in @('Workbench.Testing.dll','Workbench.Testing.Domain.dll','Workbench.Testing.Windows.dll','Workbench.OwnedLab.exe','Workbench.Testing.deps.json','Workbench.Testing.SourceAcceptance.dll','Workbench.Testing.SourceAcceptance.deps.json')) {
+            $path = Join-Path $BuildDirectory $name
+            for ($part = [IO.Path]::GetFullPath($path); $part; $part = [IO.Path]::GetDirectoryName($part)) {
+                if (((Get-Item -LiteralPath $part -Force).Attributes -band [IO.FileAttributes]::ReparsePoint) -ne 0) { throw 'TestingDeliveryLinkRefused' }
+            }
+            Copy-Item -LiteralPath $path $stage
+        }
+        Copy-Item -LiteralPath (Join-Path $repo 'tests/Workbench.Testing.SourceAcceptance/plugin.json') (Join-Path $stage 'plugin.json')
+        foreach ($name in @('requirements.synthetic.json','figma.synthetic.json')) { Copy-Item -LiteralPath (Join-Path $repo "plugins/Workbench.Testing.Domain/Fixtures/$name") (Join-Path $stage 'Fixtures') }
+        $payload = @($script:TestingSourcePayload | ForEach-Object { $f = Get-Item -LiteralPath (Join-Path $stage $_); @{ path=$_; length=$f.Length; sha256=(Get-FileHash -LiteralPath $f.FullName -Algorithm SHA256).Hash.ToLowerInvariant() } })
+        $bytes = @{}; foreach ($name in $script:TestingSourcePayload) { $bytes[$name] = [IO.File]::ReadAllBytes((Join-Path $stage $name)) }
+        Assert-TestingManifest $bytes['plugin.json'] 'SourceAcceptance'
+        $production = Read-TestingPluginArchive -ZipPath (Join-Path $ProductionDirectory 'workbench-testing-plugin-0.2.0.zip') -PayloadRecords @($productionMetadata.payload)
+        Assert-TestingCommonPayload $production $bytes
+        $managed = [WorkbenchTestingManagedAudit]::Audit($bytes, (Get-TestingHostAppDirectory), $productionMetadata.sourceCommit, (Get-TestingPinnedHostCommit), 'SourceAcceptance') | ConvertFrom-Json -AsHashtable
+        $zipName = 'workbench-testing-source-acceptance-0.2.0.zip'
+        $zipStage = Join-Path ([IO.Path]::GetTempPath()) ('testing-source-' + [Guid]::NewGuid().ToString('N') + '.zip')
+        try {
+            [IO.Compression.ZipFile]::CreateFromDirectory($stage,$zipStage)
+            Read-TestingPluginArchive -ZipPath $zipStage -PayloadRecords $payload -Profile SourceAcceptance | Out-Null
+            New-Item $OutputDirectory -ItemType Directory -Force | Out-Null
+            $zip = Join-Path $OutputDirectory $zipName; Copy-Item -LiteralPath $zipStage $zip
+            $metadata = @{ schemaVersion=1; profile='SourceAcceptance'; pluginId='com.projectworkbench.testing.source-acceptance'; version='0.2.0'; apiVersion=1; minimumHostVersion='0.4.0'; sourceCommit=$productionMetadata.sourceCommit; hostSourceCommit=(Get-TestingPinnedHostCommit); pairedProductionSha256=$productionMetadata.zip.sha256; managed=$managed; payload=$payload; zip=@{path=$zipName; length=(Get-Item $zip).Length; sha256=(Get-FileHash $zip -Algorithm SHA256).Hash.ToLowerInvariant()}; createdUtc=[DateTimeOffset]::UtcNow.ToString('O') }
+            $metadata | ConvertTo-Json -Depth 40 | Set-Content (Join-Path $OutputDirectory 'provenance.json') -Encoding utf8
+            'Synthetic SourceAcceptance fixture only. This is paired with a specific production ZIP and uses in-memory HTTP; it is not a normal plugin delivery and does not prove native UI or live provider acceptance.' | Set-Content (Join-Path $OutputDirectory 'README.md') -Encoding utf8
+            @($zipName,'provenance.json','README.md' | ForEach-Object { (Get-FileHash (Join-Path $OutputDirectory $_) -Algorithm SHA256).Hash.ToLowerInvariant() + '  ' + $_ }) | Set-Content (Join-Path $OutputDirectory 'SHA256SUMS') -Encoding utf8
+        } finally { if (Test-Path -LiteralPath $zipStage) { Remove-Item -LiteralPath $zipStage -Force } }
+    } finally { if (Test-Path -LiteralPath $stage) { Remove-Item -LiteralPath $stage -Recurse -Force } }
+    Test-TestingSourceFixtureDelivery -Directory $OutputDirectory -ProductionDirectory $ProductionDirectory -RequireCurrentSource
+}
+Export-ModuleMember -Function New-TestingPluginDelivery, Test-TestingPluginDelivery, New-TestingSourceFixtureDelivery, Test-TestingSourceFixtureDelivery
