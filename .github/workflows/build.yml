@@ -83,6 +83,13 @@ jobs:
         run: ./scripts/assert-powershell-runtime.ps1
       - name: Verify SDK source and build native SDK packages
         run: python scripts/prepare-host-sdk.py
+      - name: Check SDK consumption before long Windows tests
+        shell: pwsh
+        run: |
+          dotnet restore plugins/Workbench.Testing/Workbench.Testing.csproj --nologo
+          if ($LASTEXITCODE -ne 0) { throw 'Testing plugin restore failed.' }
+          python scripts/verify-sdk-consumption.py
+          if ($LASTEXITCODE -ne 0) { throw 'SDK consumption audit failed.' }
       - name: Repository and packaging regressions
         shell: pwsh
         run: |

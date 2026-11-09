@@ -44,7 +44,10 @@ def verify(root=ROOT):
         assets = json.loads((root / 'plugins' / project / 'obj/project.assets.json').read_text())
         folders = {str(Path(p).resolve()) for p in assets['packageFolders']}
         if folders != {str(cache)}:
-            raise ValueError('SdkConsumedCacheMismatch: ' + project)
+            # Do not print local folder names: they can contain a user's name.
+            equivalent_ignoring_case = sum(p.casefold() == str(cache).casefold() for p in folders)
+            raise ValueError('SdkConsumedCacheMismatch: ' + project +
+                             ' (folders=' + str(len(folders)) + ', casefoldMatches=' + str(equivalent_ignoring_case) + ')')
         expected = ['Workbench.Sdk/0.4.0'] if project.endswith('.Domain') else ['Workbench.Sdk/0.4.0', 'Workbench.WinUI.Sdk/0.4.0']
         for identity in expected:
             if assets['libraries'][identity]['type'] != 'package':
