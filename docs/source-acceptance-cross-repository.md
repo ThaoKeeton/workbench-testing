@@ -24,6 +24,6 @@ dotnet publish .host/acceptance-host/src/Workbench.App/Workbench.App.csproj -c R
 ./scripts/source-acceptance-cross-probe.ps1
 ```
 
-脚本要求在验收宿主的自有 `artifacts/native` 目录中创建全新的夹具和配对包目录；已存在时拒绝覆盖。四个阶段依次为 `seed`、`verify`、`stop-figma`、`stop-ai`，合计 36 项阶段检查；前一阶段失败不会启动后续阶段。输出位于 `artifacts/native/source-acceptance-probes/`。公开 Actions 的 `source-cross-windows` 作业使用隔离 Windows Server runner 构建并保存同次证据。
+脚本要求在验收宿主的自有 `artifacts/native` 目录中创建全新的夹具和配对包目录；已存在时拒绝覆盖。四个阶段依次为 `seed`、`verify`、`stop-figma`、`stop-ai`，合计 36 项阶段检查；前一阶段失败不会启动后续阶段。输出位于 `artifacts/native/source-acceptance-probes/`。公开 Actions 的 `source-cross-windows` 作业使用隔离 Windows Server runner 构建，并保存同次报告、两个 ZIP、SDK NuGet 包与清单，以及四个被哈希绑定的宿主可执行文件和程序集，便于重新核对字节。
 
 这里的 Figma/OpenAI 响应为进程内合成数据，不连接真实服务、Webhook、钉钉或用户设备。自动 Windows Server 结果也不代替 Windows 11 上真实用户的选择器、输入法、DPI、可访问性和设备交互验收；局域网和远程桌面能力另见 [后续架构](future-distributed-testing.md)。

@@ -126,9 +126,15 @@ jobs:
           name: testing-cross-source-windows-evidence
           path: |
             artifacts/host-sdk/manifest.json
+            artifacts/host-sdk/packages/*.nupkg
             artifacts/native/source-acceptance-probes/
-            artifacts/native/source-acceptance-fixture/provenance.json
-            artifacts/native/source-paired-production/provenance.json
+            artifacts/native/source-acceptance-fixture/
+            artifacts/native/source-paired-production/
+            .host/acceptance-host/artifacts/native/app/Workbench.App.exe
+            .host/acceptance-host/artifacts/native/app/Workbench.App.dll
+            .host/acceptance-host/artifacts/native/app/Workbench.Sdk.dll
+            .host/acceptance-host/artifacts/native/app/Workbench.WinUI.Sdk.dll
+          include-hidden-files: true
           if-no-files-found: error
           retention-days: 7
   native-windows:
