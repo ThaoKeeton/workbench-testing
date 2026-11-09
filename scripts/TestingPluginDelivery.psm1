@@ -140,6 +140,60 @@ function Assert-TestingManifest {
     try { [WorkbenchTestingManagedAudit]::Manifest($Bytes, 'Production') }
     catch { throw 'TestingManifestInvalid' }
 }
+function Read-TestingProvenance {
+    param([string]$Path)
+    try {
+        $item = Get-Item -LiteralPath $Path -Force
+        if ($item -isnot [IO.FileInfo] -or ($item.Attributes -band [IO.FileAttributes]::ReparsePoint) -ne 0) { throw 'TestingDeliveryProvenanceInvalid' }
+        $stream = [IO.File]::Open($Path,[IO.FileMode]::Open,[IO.FileAccess]::Read,[IO.FileShare]::Read)
+        try {
+            if ($stream.Length -lt 1 -or $stream.Length -gt 2097152) { throw 'TestingDeliveryProvenanceInvalid' }
+            $bytes = [byte[]]::new([int]$stream.Length); $stream.ReadExactly($bytes)
+            if ($stream.ReadByte() -ne -1) { throw 'TestingDeliveryProvenanceInvalid' }
+        } finally { $stream.Dispose() }
+        [WorkbenchTestingManagedAudit]::ValidateJson($bytes,'TestingDeliveryProvenanceInvalid')
+        $value = ConvertFrom-Json -InputObject ([Text.UTF8Encoding]::new($false,$true).GetString($bytes)) -AsHashtable -NoEnumerate -Depth 40 -DateKind String
+        if ($value -isnot [Collections.IDictionary]) { throw 'TestingDeliveryProvenanceInvalid' }
+        return $value
+    } catch { throw 'TestingDeliveryProvenanceInvalid' }
+}
+function Read-TestingPluginArchive {
+    param([string]$ZipPath, [object[]]$PayloadRecords)
+    for ($part = [IO.Path]::GetFullPath($ZipPath); $part; $part = [IO.Path]::GetDirectoryName($part)) {
+        if (((Get-Item -LiteralPath $part -Force).Attributes -band [IO.FileAttributes]::ReparsePoint) -ne 0) { throw 'TestingDeliveryLinkRefused' }
+    }
+    $zip = [IO.Compression.ZipFile]::OpenRead($ZipPath)
+    $payload = @{}
+    try {
+        $entries = @($zip.Entries)
+        if (@(Compare-Object $script:TestingPayload @($entries | ForEach-Object FullName) -CaseSensitive).Count -ne 0 -or $entries.Count -ne $script:TestingPayload.Count -or $PayloadRecords.Count -ne $script:TestingPayload.Count) { throw 'TestingPayloadFileListInvalid' }
+        foreach ($name in $script:TestingPayload) {
+            $entry = @($entries | Where-Object FullName -CEQ $name)
+            $record = @($PayloadRecords | Where-Object path -CEQ $name)
+            if ($entry.Count -ne 1 -or $record.Count -ne 1 -or $entry[0].Length -gt 16777216 -or $entry[0].Length -lt 1 -or $entry[0].IsEncrypted -or
+                ($entry[0].ExternalAttributes -band [int]([IO.FileAttributes]::ReparsePoint -bor [IO.FileAttributes]::Device -bor [IO.FileAttributes]::Directory)) -ne 0 -or
+                (($entry[0].ExternalAttributes -shr 16) -band 0xf000) -notin @(0,0x8000)) { throw 'TestingPayloadInvalid' }
+            $stream = $entry[0].Open()
+            try {
+                $bytes = [IO.MemoryStream]::new()
+                try {
+                    $buffer = [byte[]]::new(65536)
+                    while (($read = $stream.Read($buffer,0,$buffer.Length)) -gt 0) {
+                        if ($bytes.Length + $read -gt 16777216 -or $bytes.Length + $read -gt $entry[0].Length) { throw 'TestingPayloadInvalid' }
+                        $bytes.Write($buffer,0,$read)
+                    }
+                    $actual = $bytes.ToArray()
+                } finally { $bytes.Dispose() }
+            } finally { $stream.Dispose() }
+            if ($actual.Length -ne $entry[0].Length -or [WorkbenchTestingArchiveAudit]::Crc($actual) -ne $entry[0].Crc32) { throw 'TestingPayloadCrcMismatch' }
+            if ($record[0].length -ne $actual.Length -or $record[0].sha256 -cne [Convert]::ToHexStringLower([Security.Cryptography.SHA256]::HashData($actual))) { throw 'TestingPayloadHashMismatch' }
+            if ($name -ceq 'plugin.json') { Assert-TestingManifest $actual }
+            if ($name -ceq 'Workbench.Testing.deps.json') { try { [WorkbenchTestingManagedAudit]::ValidateJson($actual,'TestingDepsJsonInvalid') } catch { throw 'TestingDepsJsonInvalid' } }
+            $payload[$name] = $actual
+        }
+    } finally { $zip.Dispose() }
+    return ,$payload
+}
 function Assert-TestingOwnedSource {
     param([Collections.IDictionary]$Build, [Collections.IDictionary]$Descriptor)
     if ($Build['staticCrt'] -isnot [bool] -or -not $Build['staticCrt'] -or $Build['macro'] -cne '' -or $Build['sources'] -isnot [array]) { throw 'TestingOwnedHelperSourceInvalid' }
@@ -230,7 +284,7 @@ function Test-TestingPluginDelivery {
     }
     if (@(Compare-Object $files @(Get-ChildItem -LiteralPath $Directory -Force | ForEach-Object Name) -CaseSensitive).Count -ne 0) { throw 'TestingDeliveryFileListInvalid' }
     foreach ($file in Get-ChildItem -LiteralPath $Directory -Force) { if ($file.PSIsContainer -or ($file.Attributes -band [IO.FileAttributes]::ReparsePoint) -ne 0) { throw 'TestingDeliveryLinkRefused' } }
-    $metadata = Get-Content -LiteralPath (Join-Path $Directory 'provenance.json') -Raw | ConvertFrom-Json -AsHashtable
+    $metadata = Read-TestingProvenance (Join-Path $Directory 'provenance.json')
     if ($metadata.schemaVersion -ne 1 -or $metadata.pluginId -cne 'com.projectworkbench.testing' -or $metadata.version -cne '0.2.0' -or $metadata.minimumHostVersion -cne '0.4.0' -or $metadata.sourceCommit -cnotmatch '^[0-9a-f]{40}$') { throw 'TestingDeliveryIdentityInvalid' }
     if ($metadata.referenceOnly) { throw 'TestingDeliveryReferenceOnly' }
     if (-not $metadata.referenceOnly -and $metadata.sourceTreeDirty) { throw 'TestingDeliveryDirtySource' }
@@ -249,24 +303,7 @@ function Test-TestingPluginDelivery {
     }
     $zipPath = Join-Path $Directory 'workbench-testing-plugin-0.2.0.zip'
     if ($metadata.zip.path -cne 'workbench-testing-plugin-0.2.0.zip' -or $metadata.zip.length -ne (Get-Item $zipPath).Length -or $metadata.zip.sha256 -cne (Get-FileHash $zipPath -Algorithm SHA256).Hash.ToLowerInvariant()) { throw 'TestingDeliveryZipMismatch' }
-    $zip = [IO.Compression.ZipFile]::OpenRead($zipPath)
-    $nativePayload = @{}
-    try {
-        $entries = @($zip.Entries)
-        if (@(Compare-Object $script:TestingPayload @($entries | ForEach-Object FullName) -CaseSensitive).Count -ne 0 -or $entries.Count -ne $script:TestingPayload.Count -or @($metadata.payload).Count -ne $script:TestingPayload.Count) { throw 'TestingPayloadFileListInvalid' }
-        foreach ($name in $script:TestingPayload) {
-            $entry = @($entries | Where-Object FullName -CEQ $name)
-            $record = @($metadata.payload | Where-Object path -CEQ $name)
-            if ($entry.Count -ne 1 -or $record.Count -ne 1 -or $entry[0].Length -gt 16777216 -or $entry[0].IsEncrypted -or (($entry[0].ExternalAttributes -shr 16) -band 0xf000) -eq 0xa000) { throw 'TestingPayloadInvalid' }
-            $stream = $entry[0].Open()
-            try { $bytes = [IO.MemoryStream]::new(); $stream.CopyTo($bytes); $actual = $bytes.ToArray(); $bytes.Dispose() } finally { $stream.Dispose() }
-            if ([WorkbenchTestingArchiveAudit]::Crc($actual) -ne $entry[0].Crc32) { throw 'TestingPayloadCrcMismatch' }
-            if ($record[0].length -ne $actual.Length -or $record[0].sha256 -cne [Convert]::ToHexString([Security.Cryptography.SHA256]::HashData($actual)).ToLowerInvariant()) { throw 'TestingPayloadHashMismatch' }
-            if ($name -cin @('Workbench.Testing.dll','Workbench.Testing.Domain.dll','Workbench.Testing.Windows.dll','Workbench.Testing.deps.json','Workbench.OwnedLab.exe')) { $nativePayload[$name] = $actual }
-            if ($name -ceq 'plugin.json') { Assert-TestingManifest $actual }
-        }
-    }
-    finally { $zip.Dispose() }
+    $nativePayload = Read-TestingPluginArchive -ZipPath $zipPath -PayloadRecords @($metadata.payload)
     $helper = Read-TestingOwnedDescriptor $nativePayload['Workbench.Testing.Windows.dll']
     Assert-TestingOwnedHelper -Image $nativePayload['Workbench.OwnedLab.exe'] -Descriptor $helper
     if ($helper.SourceCommit -cne $metadata.sourceCommit) { throw 'TestingOwnedHelperSourceInvalid' }

@@ -39,6 +39,7 @@ jobs:
         run: |
           ./tests/scripts/TestingPluginPackage.Tests.ps1 -HelperGuardsOnly
           ./tests/scripts/ManagedPayloadAudit.Tests.ps1
+          ./tests/scripts/TestingArchiveStructure.Tests.ps1
           ./tests/scripts/TestingPluginProbe.Tests.ps1
           ./tests/scripts/SourceAcceptanceProbe.Tests.ps1
           ./tests/scripts/OwnedLabBuild.Tests.ps1 -Mode ToolchainContract
@@ -99,6 +100,7 @@ jobs:
           if ($LASTEXITCODE -ne 0) { throw 'Repository migration regressions failed.' }
           ./tests/scripts/TestingPluginPackage.Tests.ps1 -HelperGuardsOnly
           ./tests/scripts/ManagedPayloadAudit.Tests.ps1
+          ./tests/scripts/TestingArchiveStructure.Tests.ps1
           ./tests/scripts/TestingPluginProbe.Tests.ps1
           ./tests/scripts/SourceAcceptanceProbe.Tests.ps1
           ./tests/scripts/OwnedLabBuild.Tests.ps1 -Mode ToolchainContract
