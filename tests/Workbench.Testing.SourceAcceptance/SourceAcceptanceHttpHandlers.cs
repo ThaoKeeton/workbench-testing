@@ -36,6 +36,7 @@ internal static class SourceAcceptanceTransport
         {
             if (!ticket.Planned || isDisposed() || !(provider == SourceAcceptanceProvider.Figma ? ValidateFigma(request) : await ValidateAiAsync(request).ConfigureAwait(false))
                 || !ledger.Accept(ticket)) throw Refused();
+            ledger.StartReleaseMonitor(ticket);
             using var cancellation = token.Register(() => ledger.ObserveCancellation(ticket));
             if (ticket.Scenario == SourceAcceptanceScenario.Hold) await ticket.Release.Task.ConfigureAwait(false);
             var bytes = ticket.Scenario == SourceAcceptanceScenario.Malformed ? Encoding.UTF8.GetBytes("{malformed synthetic JSON")

@@ -1,0 +1,43 @@
+{
+  "schemaVersion": 1,
+  "repository": "https://github.com/ThaoKeeton/project-workbench",
+  "sourceCommit": "b1a3e9c9963c2d75798a6068f99a6270d81bd074",
+  "files": [
+    {
+      "sourcePath": "tests/Workbench.Core.Tests/SourceAcceptanceReleaseTests.cs",
+      "path": "tests/Workbench.Testing.Tests/SourceAcceptanceReleaseTests.cs",
+      "length": 36191,
+      "sha256": "34f271510005c41560880c440e2496455ed09c0d9dc27f92136f3d0f9a8469c6"
+    },
+    {
+      "sourcePath": "tests/Workbench.Testing.SourceAcceptance/SourceAcceptanceHttpHandlers.cs",
+      "path": "tests/Workbench.Testing.SourceAcceptance/SourceAcceptanceHttpHandlers.cs",
+      "length": 12047,
+      "sha256": "86f3d9b5727ccb55b8d97ae3e1b2341876bd2bb99fd7b9ec04b85896e2179062"
+    },
+    {
+      "sourcePath": "tests/Workbench.Testing.SourceAcceptance/SourceAcceptanceOwnership.cs",
+      "path": "tests/Workbench.Testing.SourceAcceptance/SourceAcceptanceOwnership.cs",
+      "length": 1902,
+      "sha256": "e105d775e86b7a5741b2694c45bc96e4f2ec2fc73b1e8c3514e012631ae6ede1"
+    },
+    {
+      "sourcePath": "tests/Workbench.Testing.SourceAcceptance/SourceAcceptancePlugin.cs",
+      "path": "tests/Workbench.Testing.SourceAcceptance/SourceAcceptancePlugin.cs",
+      "length": 2392,
+      "sha256": "119bff04e6534e5591bb982921c6f461b048bd8b70af093305c89dfd59c38e01"
+    },
+    {
+      "sourcePath": "tests/Workbench.Testing.SourceAcceptance/SourceAcceptanceReleaseBridge.cs",
+      "path": "tests/Workbench.Testing.SourceAcceptance/SourceAcceptanceReleaseBridge.cs",
+      "length": 10408,
+      "sha256": "fa4f48b00ffa94beb15655219f5ed720e731c0c54ecd304991deb2b50897854d"
+    },
+    {
+      "sourcePath": "tests/Workbench.Testing.SourceAcceptance/SourceAcceptanceScenarioLedger.cs",
+      "path": "tests/Workbench.Testing.SourceAcceptance/SourceAcceptanceScenarioLedger.cs",
+      "length": 7998,
+      "sha256": "ca2dcb3513fee64711c421349241b8309d04fae80f2716330b0a15916d3c504e"
+    }
+  ]
+}

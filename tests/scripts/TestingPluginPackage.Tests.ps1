@@ -47,9 +47,9 @@ if ($HelperGuardsOnly) {
         'plugins/Workbench.Testing/TestingSourceServices.cs','plugins/Workbench.Testing/TestingPlugin.cs','plugins/Workbench.Testing/Workbench.Testing.csproj','plugins/Workbench.Testing/plugin.json',
         'tests/Workbench.Testing.SourceAcceptance/Workbench.Testing.SourceAcceptance.csproj','tests/Workbench.Testing.SourceAcceptance/plugin.json',
         'tests/Workbench.Testing.SourceAcceptance/SourceAcceptancePlugin.cs','tests/Workbench.Testing.SourceAcceptance/SourceAcceptanceProtocol.cs',
-        'tests/Workbench.Testing.SourceAcceptance/SourceAcceptanceScenarioLedger.cs','tests/Workbench.Testing.SourceAcceptance/SourceAcceptanceHttpHandlers.cs','tests/Workbench.Testing.SourceAcceptance/SourceAcceptanceOwnership.cs',
-        'eng/host-sdk.lock.json','eng/migration-source.json','scripts/prepare-host-sdk.py',
-        'tests/Workbench.Testing.Tests/SourceAcceptanceTests.cs','tests/Workbench.Testing.Tests/SourceAcceptanceTests.Ownership.cs','tests/Workbench.Testing.Tests/SourceAcceptanceTests.Transport.cs',
+        'tests/Workbench.Testing.SourceAcceptance/SourceAcceptanceScenarioLedger.cs','tests/Workbench.Testing.SourceAcceptance/SourceAcceptanceHttpHandlers.cs','tests/Workbench.Testing.SourceAcceptance/SourceAcceptanceOwnership.cs','tests/Workbench.Testing.SourceAcceptance/SourceAcceptanceReleaseBridge.cs',
+        'eng/host-sdk.lock.json','eng/migration-source.json','eng/source-acceptance-supplement.json','scripts/prepare-host-sdk.py',
+        'tests/Workbench.Testing.Tests/SourceAcceptanceTests.cs','tests/Workbench.Testing.Tests/SourceAcceptanceTests.Ownership.cs','tests/Workbench.Testing.Tests/SourceAcceptanceTests.Transport.cs','tests/Workbench.Testing.Tests/SourceAcceptanceReleaseTests.cs',
         'docs/testing-plugin.md','docs/windows-verification.md','.github/workflows/build.yml','scripts/TestingPluginDelivery.psm1','tests/scripts/TestingPluginPackage.Tests.ps1',
         'tests/Workbench.Testing.Tests/TestingNativeOwnedPilotTests.cs','tests/Workbench.Testing.Tests/TestingNativeOwnedEvidenceTests.cs','tests/Workbench.Testing.Tests/TestingNativeLifecycleTests.cs',
         'tests/Workbench.Testing.Tests/OwnedAdmissionTests.cs','tests/Workbench.Testing.Tests/OwnedJournalTests.cs','tests/Workbench.Testing.Tests/OwnedFixedPlansTests.cs')) {

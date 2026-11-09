@@ -16,6 +16,9 @@ internal sealed class SourceAcceptanceScenarioLedger
     private string _phase = "idle", _outcome = "none";
     private bool _armed, _closed;
     private Ticket? _active;
+    private SourceAcceptanceReleaseBridge? _releaseBridge;
+    private bool _releaseConfigured;
+    private readonly List<SourceAcceptanceReleaseBridge.Monitor> _releaseMonitors = [];
     internal string ProjectId { get; }
     internal bool CommandsOpen { get { lock (_sync) return !_closed; } }
 
@@ -40,6 +43,7 @@ internal sealed class SourceAcceptanceScenarioLedger
         internal bool Planned { get; } = planned;
         internal bool Accepted, Settled;
         internal TaskCompletionSource Release { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
+        internal SourceAcceptanceReleaseBridge.Monitor? Monitor;
     }
     private Counts For(SourceAcceptanceProvider provider) => provider == SourceAcceptanceProvider.Figma ? _figma : _ai;
     internal string StateJson()
@@ -85,6 +89,11 @@ internal sealed class SourceAcceptanceScenarioLedger
             if (_closed || !ReferenceEquals(_active, ticket) || !ticket.Planned || ticket.Accepted || _accepted >= 32) return false;
             _accepted = checked(_accepted + 1);
             var counts = For(ticket.Provider); counts.Accepted = checked(counts.Accepted + 1); ticket.Accepted = true;
+            if (ticket.Scenario == SourceAcceptanceScenario.Hold && _releaseBridge is not null)
+            {
+                ticket.Monitor = _releaseBridge.Reserve(_instanceId, ProjectId, ticket, () => ReleaseTicket(ticket));
+                _releaseMonitors.Add(ticket.Monitor);
+            }
             _phase = ticket.Scenario == SourceAcceptanceScenario.Hold ? "held" : "entered"; return true;
         }
     }
@@ -115,14 +124,30 @@ internal sealed class SourceAcceptanceScenarioLedger
             if (_active is not { Accepted: true, Settled: false, Scenario: SourceAcceptanceScenario.Hold } active) return null;
             ticket = active;
         }
-        return () =>
-        {
-            lock (_sync)
-                if (ReferenceEquals(_active, ticket) && !ticket.Settled && !_closed) _phase = "released";
-            ticket.Release.TrySetResult();
-        };
+        return () => ReleaseTicket(ticket);
+    }
+    private void ReleaseTicket(Ticket ticket)
+    {
+        lock (_sync)
+            if (ReferenceEquals(_active, ticket) && !ticket.Settled && !_closed) _phase = "released";
+        ticket.Release.TrySetResult();
     }
     internal bool ReleasePending()
     { var release = CaptureRelease(); if (release is null) return false; release(); return true; }
+    internal void ConfigureReleaseBridge(SourceAcceptanceReleaseBridge? bridge)
+    {
+        lock (_sync)
+        {
+            if (_closed || _releaseConfigured || _generation != 0) throw new ArgumentException("Synthetic source release configuration refused.");
+            _releaseConfigured = true; _releaseBridge = bridge;
+        }
+    }
+    internal Task JoinReleaseMonitorsAsync()
+    {
+        Task[] pending;
+        lock (_sync) pending = _releaseMonitors.Select(monitor => monitor.Completion).ToArray();
+        return Task.WhenAll(pending);
+    }
+    internal void StartReleaseMonitor(Ticket ticket) => ticket.Monitor?.Start();
     internal void SealCommands() { lock (_sync) { _closed = true; _armed = false; _phase = "closed"; } }
 }

@@ -22,6 +22,7 @@
     <Compile Include="../Workbench.Testing.SourceAcceptance/SourceAcceptanceScenarioLedger.cs" Link="SourceAcceptance/SourceAcceptanceScenarioLedger.cs" />
     <Compile Include="../Workbench.Testing.SourceAcceptance/SourceAcceptanceHttpHandlers.cs" Link="SourceAcceptance/SourceAcceptanceHttpHandlers.cs" />
     <Compile Include="../Workbench.Testing.SourceAcceptance/SourceAcceptanceOwnership.cs" Link="SourceAcceptance/SourceAcceptanceOwnership.cs" />
+    <Compile Include="../Workbench.Testing.SourceAcceptance/SourceAcceptanceReleaseBridge.cs" Link="SourceAcceptance/SourceAcceptanceReleaseBridge.cs" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="18.0.1" />
     <PackageReference Include="Microsoft.Extensions.TimeProvider.Testing" Version="10.0.0" />
     <PackageReference Include="xunit" Version="2.9.3" />
