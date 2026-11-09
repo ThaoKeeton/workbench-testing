@@ -1,0 +1,14 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net10.0-windows10.0.19041.0</TargetFramework>
+    <EnableWindowsTargeting>true</EnableWindowsTargeting>
+    <PlatformTarget>x64</PlatformTarget>
+    <AssemblyName>Workbench.OwnedLab.FixtureLauncher</AssemblyName>
+    <DefineConstants>$(DefineConstants);OWNED_LAB_ACCEPTANCE_FIXTURE</DefineConstants>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="../../plugins/Workbench.Testing.Windows/*.cs" Link="%(Filename)%(Extension)" />
+    <ProjectReference Include="../../plugins/Workbench.Testing.Domain/Workbench.Testing.Domain.csproj" />
+    <InternalsVisibleTo Include="Workbench.OwnedLab.WindowsProbe" />
+  </ItemGroup>
+</Project>

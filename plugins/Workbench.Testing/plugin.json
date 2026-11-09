@@ -1,0 +1,11 @@
+{
+  "id": "com.projectworkbench.testing",
+  "name": "测试设计",
+  "version": "0.2.0",
+  "apiVersion": 1,
+  "minimumHostVersion": "0.4.0",
+  "entryAssembly": "Workbench.Testing.dll",
+  "entryType": "Workbench.Testing.TestingPlugin",
+  "description": "本地 JSON、明确发起的 Figma 只读导入与 OpenAI 人工审核用例创作；虚拟执行与虚拟帧为 SIMULATED，受控 Windows 试验仅操作工作台自带的固定合成任务窗口。受信任的进程内插件，不是安全沙箱。",
+  "capabilities": ["native-ui", "project-testing", "local-files", "simulated-testing", "remote-figma-read", "openai-case-authoring"]
+}

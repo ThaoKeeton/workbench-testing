@@ -1,0 +1,38 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <IsTestProject>true</IsTestProject><IsPackable>false</IsPackable>
+    <!-- Preserves the pinned host Core and domain InternalsVisibleTo test contract only. -->
+    <AssemblyName>Workbench.Core.Tests</AssemblyName>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="../../plugins/Workbench.Testing/TestingSourceServices.cs" Link="Testing/TestingSourceServices.cs" />
+    <Compile Include="../../plugins/Workbench.Testing/NativeActionOwner.cs" Link="Testing/NativeActionOwner.cs" />
+    <Compile Include="../../plugins/Workbench.Testing/NativeInvocationFeedback.cs" Link="Testing/NativeInvocationFeedback.cs" />
+    <Compile Include="../../plugins/Workbench.Testing/NativeOwnedPilot.cs" Link="Testing/NativeOwnedPilot.cs" />
+    <Compile Include="../../plugins/Workbench.Testing/NativeOwnedEvidence.cs" Link="Testing/NativeOwnedEvidence.cs" />
+    <Compile Include="../../plugins/Workbench.Testing/NativeTestingLifecycle.cs" Link="Testing/NativeTestingLifecycle.cs" />
+    <Compile Include="../../plugins/Workbench.Testing/NativeActivityCoordinator.cs" Link="Testing/NativeActivityCoordinator.cs" />
+    <Compile Include="../../plugins/Workbench.Testing/NativeSourceDraft.cs" Link="Testing/NativeSourceDraft.cs" />
+    <Compile Include="../../plugins/Workbench.Testing/NativeRemoteOperation.cs" Link="Testing/NativeRemoteOperation.cs" />
+    <Compile Include="../../plugins/Workbench.Testing/NativeRunAdmission.cs" Link="Testing/NativeRunAdmission.cs" />
+    <Compile Include="../../plugins/Workbench.Testing/NativeTestingFiles.cs" Link="Testing/NativeTestingFiles.cs" />
+    <Compile Include="../../plugins/Workbench.Testing/NativeEventSelection.cs" Link="Testing/NativeEventSelection.cs" />
+    <Compile Include="../../plugins/Workbench.Testing/NativeEvidenceCache.cs" Link="Testing/NativeEvidenceCache.cs" />
+    <Compile Include="../Workbench.Testing.SourceAcceptance/SourceAcceptanceProtocol.cs" Link="SourceAcceptance/SourceAcceptanceProtocol.cs" />
+    <Compile Include="../Workbench.Testing.SourceAcceptance/SourceAcceptanceScenarioLedger.cs" Link="SourceAcceptance/SourceAcceptanceScenarioLedger.cs" />
+    <Compile Include="../Workbench.Testing.SourceAcceptance/SourceAcceptanceHttpHandlers.cs" Link="SourceAcceptance/SourceAcceptanceHttpHandlers.cs" />
+    <Compile Include="../Workbench.Testing.SourceAcceptance/SourceAcceptanceOwnership.cs" Link="SourceAcceptance/SourceAcceptanceOwnership.cs" />
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="18.0.1" />
+    <PackageReference Include="Microsoft.Extensions.TimeProvider.Testing" Version="10.0.0" />
+    <PackageReference Include="xunit" Version="2.9.3" />
+    <PackageReference Include="xunit.runner.visualstudio" Version="3.1.5">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+    <ProjectReference Include="$(HostSourceRoot)/src/Workbench.Core/Workbench.Core.csproj" />
+    <ProjectReference Include="../../plugins/Workbench.Testing.Domain/Workbench.Testing.Domain.csproj" />
+  </ItemGroup>
+  <Target Name="RequirePinnedHostFixture" BeforeTargets="PrepareForBuild">
+    <Error Condition="!Exists('$(HostSourceRoot)/src/Workbench.Core/Workbench.Core.csproj')" Text="Pinned host fixture missing. Run scripts/prepare-host-sdk.py with the host checkout first, then set HostSourceRoot." />
+  </Target>
+</Project>

@@ -1,0 +1,11 @@
+{
+  "id": "com.projectworkbench.testing.source-acceptance",
+  "name": "Synthetic source acceptance fixture",
+  "version": "0.2.0",
+  "apiVersion": 1,
+  "minimumHostVersion": "0.4.0",
+  "entryAssembly": "Workbench.Testing.SourceAcceptance.dll",
+  "entryType": "Workbench.Testing.SourceAcceptance.SourceAcceptancePlugin",
+  "description": "Synthetic terminal in-memory HTTP source acceptance; delegates the production Testing UI and lifecycle with explicit local fixture controls. Trusted in-process code, not a sandbox; never bundled for ordinary startup.",
+  "capabilities": ["native-ui", "project-testing", "local-files", "simulated-testing", "remote-figma-read", "openai-case-authoring", "source-acceptance-fixture"]
+}

@@ -1,0 +1,59 @@
+{
+  "schemaVersion": 1,
+  "repository": "https://github.com/ThaoKeeton/project-workbench.git",
+  "sourceCommit": "655d7b6496067daad7c5e4cefb1f1da1b8379536",
+  "sdkVersion": "0.4.0",
+  "pluginVersion": "0.2.0",
+  "apiVersion": 1,
+  "runtimeServices": 1,
+  "projectServices": 1,
+  "testingServices": 1,
+  "dotnetSdk": "10.0.403",
+  "windowsAppSdk": "1.8.260921001",
+  "sources": [
+    {
+      "path": "Directory.Build.props",
+      "sha256": "e1f773524cbe06e47ce9373a35995982889f95f1f943cde9830a99ba4257e76b"
+    },
+    {
+      "path": "global.json",
+      "sha256": "6a9d5e059d71e51ec61f582ea1cda96d2254bf83f7857846e40f0466e6dd9417"
+    },
+    {
+      "path": "src/Workbench.Sdk/PluginContracts.cs",
+      "sha256": "cd71d562f3b1c7edb196f281482bc2119b4a013cfe7ff06896e9c65020192daf"
+    },
+    {
+      "path": "src/Workbench.Sdk/ProjectContracts.cs",
+      "sha256": "2d677f581e800efca219ee6bf71ac6be5148ceb60931aae2787a621bbc76885b"
+    },
+    {
+      "path": "src/Workbench.Sdk/README.md",
+      "sha256": "800c81be49955032cdf1d746186e26ebc689da6d9fedfef1353ed75041da515d"
+    },
+    {
+      "path": "src/Workbench.Sdk/RuntimeContracts.cs",
+      "sha256": "89fc39ed19a0135885f5e7eafb5488e8bee188c902cad742302db6925929bb33"
+    },
+    {
+      "path": "src/Workbench.Sdk/TestingContracts.cs",
+      "sha256": "7172c5f418a23644210de5f32df82e7d7b4ea8771af9bb51a1ebb744946bcfbc"
+    },
+    {
+      "path": "src/Workbench.Sdk/Workbench.Sdk.csproj",
+      "sha256": "9e988ffc2d5ed42dc56f6308cfbe9face85d2d7924922ed26a9cbb5ca78cfadf"
+    },
+    {
+      "path": "src/Workbench.WinUI.Sdk/README.md",
+      "sha256": "d5cc4c749277b4939c1c1071b5f7ec08a289dbd54c8fe6536c6ba415f9b648e2"
+    },
+    {
+      "path": "src/Workbench.WinUI.Sdk/WinUiView.cs",
+      "sha256": "f3d13fe7920bad36e037f3badb34d932a93fab6de99321538fd0fc0223d1dd3a"
+    },
+    {
+      "path": "src/Workbench.WinUI.Sdk/Workbench.WinUI.Sdk.csproj",
+      "sha256": "a56bdafdbb6653ce89afc66ff8581580bf407649d14e55b94681368f3814afe0"
+    }
+  ]
+}

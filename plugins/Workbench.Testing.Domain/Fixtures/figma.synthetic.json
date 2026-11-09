@@ -1,0 +1,9 @@
+{
+  "schemaVersion": 1,
+  "documentId": "synthetic.figma-local.task-form.v1",
+  "title": "Synthetic normalized local Figma snapshot",
+  "nodes": [
+    {"id":"12345678901234567890","name":"Local design task 🧪","description":"Normalized synthetic node; no remote API or .fig interpretation.","acceptanceCriteria":["The explicitly mapped task form saves a nonempty title."],"virtualScenario":"TaskFormPositive"},
+    {"id":"../../literal-node","name":"Manual layout review","description":"Inspect the supplied local design criterion.","acceptanceCriteria":["A reviewer checks layout intent manually.","A reviewer checks navigation intent manually."],"virtualScenario":null}
+  ]
+}

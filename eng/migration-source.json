@@ -1,0 +1,985 @@
+{
+  "schemaVersion": 1,
+  "repository": "https://github.com/ThaoKeeton/project-workbench",
+  "sourceCommit": "655d7b6496067daad7c5e4cefb1f1da1b8379536",
+  "files": [
+    {
+      "sourcePath": "Directory.Build.props",
+      "path": "Directory.Build.props",
+      "length": 277,
+      "sha256": "e1f773524cbe06e47ce9373a35995982889f95f1f943cde9830a99ba4257e76b"
+    },
+    {
+      "sourcePath": "docs/figma-readonly-capture.md",
+      "path": "docs/figma-readonly-capture.md",
+      "length": 9482,
+      "sha256": "539d1f77441e50da002eac7c99db37f871fbd38a38bcd31c2cdbe63cfcb9f45f"
+    },
+    {
+      "sourcePath": "docs/testing-plugin.md",
+      "path": "docs/testing-plugin.md",
+      "length": 17283,
+      "sha256": "316ab13c95380721b90d922cbfb762c7c4c3c3ac013541b681443009e1b4f9c6"
+    },
+    {
+      "sourcePath": "docs/testing-services.md",
+      "path": "docs/testing-services.md",
+      "length": 28096,
+      "sha256": "0b28d5adff18e1b06840b6b6820ab05cee85fe90af19b5f513926c5f6056e2c5"
+    },
+    {
+      "sourcePath": "global.json",
+      "path": "global.json",
+      "length": 109,
+      "sha256": "6a9d5e059d71e51ec61f582ea1cda96d2254bf83f7857846e40f0466e6dd9417"
+    },
+    {
+      "sourcePath": "native/Workbench.OwnedLab/Automation.cpp",
+      "path": "native/Workbench.OwnedLab/Automation.cpp",
+      "length": 2540,
+      "sha256": "5540b8005ce21a88ffd6f0e277e7b22663dfefdeb2222907e0b10c5f16d737c8"
+    },
+    {
+      "sourcePath": "native/Workbench.OwnedLab/Automation.h",
+      "path": "native/Workbench.OwnedLab/Automation.h",
+      "length": 699,
+      "sha256": "c76dc2f955f03cbe4aefa8308a9ae0e2639a06c9502d5a8bdfcfd9173f0d1c9d"
+    },
+    {
+      "sourcePath": "native/Workbench.OwnedLab/Broker.cpp",
+      "path": "native/Workbench.OwnedLab/Broker.cpp",
+      "length": 4463,
+      "sha256": "8fed5ad936100526e803ae47eff6feb09004fb50584ade4f608e0be531de9587"
+    },
+    {
+      "sourcePath": "native/Workbench.OwnedLab/Broker.h",
+      "path": "native/Workbench.OwnedLab/Broker.h",
+      "length": 31,
+      "sha256": "b72fec62868365a0c8c3d37216aaed3f251c889ba3b3452313c098adc66852a0"
+    },
+    {
+      "sourcePath": "native/Workbench.OwnedLab/BuildInfo.rc",
+      "path": "native/Workbench.OwnedLab/BuildInfo.rc",
+      "length": 557,
+      "sha256": "c2584d1a817fa7edcaeb039484b65e77b50ec178789d9a5cc86474574aaf387a"
+    },
+    {
+      "sourcePath": "native/Workbench.OwnedLab/Capture.cpp",
+      "path": "native/Workbench.OwnedLab/Capture.cpp",
+      "length": 1900,
+      "sha256": "f10abcb50552c21fe1c5b072080936efc2bf83c6a026f024d9cab9e69cb18ae8"
+    },
+    {
+      "sourcePath": "native/Workbench.OwnedLab/Capture.h",
+      "path": "native/Workbench.OwnedLab/Capture.h",
+      "length": 117,
+      "sha256": "6051be23dcb134820f07d9d05dc2878dd44ad547e2a943cbe0bc7f00b82a3e5e"
+    },
+    {
+      "sourcePath": "native/Workbench.OwnedLab/Main.cpp",
+      "path": "native/Workbench.OwnedLab/Main.cpp",
+      "length": 618,
+      "sha256": "9ece16a8e68d3f2814d620ba416f5a36e1909cbbcad28b77415c9dbc5e294753"
+    },
+    {
+      "sourcePath": "native/Workbench.OwnedLab/Main.h",
+      "path": "native/Workbench.OwnedLab/Main.h",
+      "length": 107,
+      "sha256": "2acec122306ab88d639faaf601e363d0af3b6c44936a0aec3ac258755efba365"
+    },
+    {
+      "sourcePath": "native/Workbench.OwnedLab/Protocol.cpp",
+      "path": "native/Workbench.OwnedLab/Protocol.cpp",
+      "length": 8143,
+      "sha256": "e398be3608da7e2d7e782f96233895e52ba1ba33c9cb1a24846a29b558bdcecd"
+    },
+    {
+      "sourcePath": "native/Workbench.OwnedLab/Protocol.h",
+      "path": "native/Workbench.OwnedLab/Protocol.h",
+      "length": 2656,
+      "sha256": "ba0d2604f312d3cfe6091d5e754b66048924b95d17e9459b4fc6de9e348c91f1"
+    },
+    {
+      "sourcePath": "native/Workbench.OwnedLab/Target.cpp",
+      "path": "native/Workbench.OwnedLab/Target.cpp",
+      "length": 4932,
+      "sha256": "b50d21a2ebfdfe8c7b6487ef2d2124f7378dcc09a9b9e3f955940df6b053af35"
+    },
+    {
+      "sourcePath": "native/Workbench.OwnedLab/Target.h",
+      "path": "native/Workbench.OwnedLab/Target.h",
+      "length": 31,
+      "sha256": "b72fec62868365a0c8c3d37216aaed3f251c889ba3b3452313c098adc66852a0"
+    },
+    {
+      "sourcePath": "native/Workbench.OwnedLab/TargetProcess.cpp",
+      "path": "native/Workbench.OwnedLab/TargetProcess.cpp",
+      "length": 4484,
+      "sha256": "84b5bfef8aafdef735555e8a04a4d855a259b6e0a5b0199a2c350db62538033a"
+    },
+    {
+      "sourcePath": "native/Workbench.OwnedLab/TargetProcess.h",
+      "path": "native/Workbench.OwnedLab/TargetProcess.h",
+      "length": 317,
+      "sha256": "c2108bc94cd323fb0709e0c32853537056c4d8475ab3e9bf32c823b381aac268"
+    },
+    {
+      "sourcePath": "plugins/Shared/SampleTextBuffer.cs",
+      "path": "plugins/Shared/SampleTextBuffer.cs",
+      "length": 2601,
+      "sha256": "b9f2d0c47af4c75a3ced66372e3dc5cc0bd566522a4d1ae807f89a27885b1fe7"
+    },
+    {
+      "sourcePath": "plugins/Workbench.TestCases.Sample/TestCasesPlugin.cs",
+      "path": "plugins/Workbench.TestCases.Sample/TestCasesPlugin.cs",
+      "length": 7881,
+      "sha256": "402884e6cdfc7a31377055fe36fa34b39f0e071466be65defc4582b8a6315fa4"
+    },
+    {
+      "sourcePath": "plugins/Workbench.TestCases.Sample/Workbench.TestCases.Sample.csproj",
+      "path": "plugins/Workbench.TestCases.Sample/Workbench.TestCases.Sample.csproj",
+      "length": 627,
+      "sha256": "b364ed87fba1602c88533abb69d0dd43256d451f05928b318010b68be8c8d22c"
+    },
+    {
+      "sourcePath": "plugins/Workbench.TestCases.Sample/plugin.json",
+      "path": "plugins/Workbench.TestCases.Sample/plugin.json",
+      "length": 484,
+      "sha256": "0d1b7d12ddd2139040c536407a091b6e039469f0b4e40a6e80d67f2fea04c292"
+    },
+    {
+      "sourcePath": "plugins/Workbench.Testing.Domain/AiGenerationPublication.cs",
+      "path": "plugins/Workbench.Testing.Domain/AiGenerationPublication.cs",
+      "length": 296,
+      "sha256": "05f36b24b44e4ce449505a2f462422bb97ee3397d316a30354de67fb05e136ad"
+    },
+    {
+      "sourcePath": "plugins/Workbench.Testing.Domain/CaseDraftSession.cs",
+      "path": "plugins/Workbench.Testing.Domain/CaseDraftSession.cs",
+      "length": 6998,
+      "sha256": "a228674b5d345a21f8c102573e57dd81bb6717433f5e1d122b09cf24dae2b07b"
+    },
+    {
+      "sourcePath": "plugins/Workbench.Testing.Domain/CsvTestCaseExporter.cs",
+      "path": "plugins/Workbench.Testing.Domain/CsvTestCaseExporter.cs",
+      "length": 2073,
+      "sha256": "aacb21c515b1f106158d67e58de86313ba9bfcc3fc574794b20c7268c4e87908"
+    },
+    {
+      "sourcePath": "plugins/Workbench.Testing.Domain/DomainErrors.cs",
+      "path": "plugins/Workbench.Testing.Domain/DomainErrors.cs",
+      "length": 1307,
+      "sha256": "308a66847a5a08fc5b836236e29681118cb40712ef3ac2d4992efe199d1ebd40"
+    },
+    {
+      "sourcePath": "plugins/Workbench.Testing.Domain/Fixtures/figma.synthetic.json",
+      "path": "plugins/Workbench.Testing.Domain/Fixtures/figma.synthetic.json",
+      "length": 680,
+      "sha256": "73076a1461d63d505d8a49fb5831614f9d7344da780a4fbf7b664cd6c7aa3663"
+    },
+    {
+      "sourcePath": "plugins/Workbench.Testing.Domain/Fixtures/requirements.synthetic.json",
+      "path": "plugins/Workbench.Testing.Domain/Fixtures/requirements.synthetic.json",
+      "length": 1186,
+      "sha256": "599ac17bb284df9fc30a6d35e6d582a62377fe39fefa2699e5ad5bf0a74a5be2"
+    },
+    {
+      "sourcePath": "plugins/Workbench.Testing.Domain/Generation/Ai/AiGenerationCapture.cs",
+      "path": "plugins/Workbench.Testing.Domain/Generation/Ai/AiGenerationCapture.cs",
+      "length": 2123,
+      "sha256": "32fca6061a218b90366fadcef8adad377c89fd4a568356d2122ca179744e4d2c"
+    },
+    {
+      "sourcePath": "plugins/Workbench.Testing.Domain/Generation/Ai/AiGenerationException.cs",
+      "path": "plugins/Workbench.Testing.Domain/Generation/Ai/AiGenerationException.cs",
+      "length": 1337,
+      "sha256": "91a10642fed48b12d1c671c4029dea13a750a6db112896c4022d5b056d7aa949"
+    },
+    {
+      "sourcePath": "plugins/Workbench.Testing.Domain/Generation/Ai/AiInputCapture.cs",
+      "path": "plugins/Workbench.Testing.Domain/Generation/Ai/AiInputCapture.cs",
+      "length": 4561,
+      "sha256": "66f946479568a1fd8dc64134d3bcd36206b1c12764b8842a6ea2a325fbe2edc1"
+    },
+    {
+      "sourcePath": "plugins/Workbench.Testing.Domain/Generation/Ai/AiPublicationBuilder.cs",
+      "path": "plugins/Workbench.Testing.Domain/Generation/Ai/AiPublicationBuilder.cs",
+      "length": 2688,
+      "sha256": "d5fc1d79c876323a512c603d49a913052b395d6001071cf408d1c53ba6c7a197"
+    },
+    {
+      "sourcePath": "plugins/Workbench.Testing.Domain/Generation/Ai/AiRequestBuilder.cs",
+      "path": "plugins/Workbench.Testing.Domain/Generation/Ai/AiRequestBuilder.cs",
+      "length": 2135,
+      "sha256": "89f222e021310152cbb70025436f4ac203a7773c51738980d8314742950a333f"
+    },
+    {
+      "sourcePath": "plugins/Workbench.Testing.Domain/Generation/Ai/AiResponseParser.cs",
+      "path": "plugins/Workbench.Testing.Domain/Generation/Ai/AiResponseParser.cs",
+      "length": 4974,
+      "sha256": "6e772a6554abe824fec38c1a22695e2bf8c4a23689323ee7a2202b117afa1522"
+    },
+    {
+      "sourcePath": "plugins/Workbench.Testing.Domain/Generation/Ai/AiTestCaseGenerator.cs",
+      "path": "plugins/Workbench.Testing.Domain/Generation/Ai/AiTestCaseGenerator.cs",
+      "length": 7237,
+      "sha256": "21abfb215483ca5c2361dbfde0bc934c71cd1b821d498de8678042a6955b7941"
+    },
+    {
+      "sourcePath": "plugins/Workbench.Testing.Domain/Generation/Ai/StrictJson.cs",
+      "path": "plugins/Workbench.Testing.Domain/Generation/Ai/StrictJson.cs",
+      "length": 3054,
+      "sha256": "92225fd796c3ccd2e5597bc1265d7581dfc8ec7a1b22aa89596708b58837846e"
+    },
+    {
+      "sourcePath": "plugins/Workbench.Testing.Domain/ModelCopy.cs",
+      "path": "plugins/Workbench.Testing.Domain/ModelCopy.cs",
+      "length": 1100,
+      "sha256": "a040c56b03e26b1c79bfec33e27899a551da389eb352b40a5b069c65cb0a5922"
+    },
+    {
+      "sourcePath": "plugins/Workbench.Testing.Domain/OwnedLab/FixedOwnedPlans.cs",
+      "path": "plugins/Workbench.Testing.Domain/OwnedLab/FixedOwnedPlans.cs",
+      "length": 5542,
+      "sha256": "4bc386e57f0b00ef7b0ee1999675a14d1858a7315982f7b5a09f0a04d5ac9864"
+    },
+    {
+      "sourcePath": "plugins/Workbench.Testing.Domain/OwnedLab/OwnedAtomicFiles.cs",
+      "path": "plugins/Workbench.Testing.Domain/OwnedLab/OwnedAtomicFiles.cs",
+      "length": 856,
+      "sha256": "7fe8bcc306faaeb0913e5feb1b0bb754d50840e89eceebaaf91b347a2057113f"
+    },
+    {
+      "sourcePath": "plugins/Workbench.Testing.Domain/OwnedLab/OwnedJournal.cs",
+      "path": "plugins/Workbench.Testing.Domain/OwnedLab/OwnedJournal.cs",
+      "length": 17320,
+      "sha256": "df2d00aed6aef60c45223ebddb42f5582ee770620c64f4c05998fcc0bb882f80"
+    },
+    {
+      "sourcePath": "plugins/Workbench.Testing.Domain/OwnedLab/OwnedJournalFormat.cs",
+      "path": "plugins/Workbench.Testing.Domain/OwnedLab/OwnedJournalFormat.cs",
+      "length": 15171,
+      "sha256": "ed0b745dac6a05ae73ed8514d7a1ebd343cc210ece1b38e0b7d6414c01e3bef5"
+    },
+    {
+      "sourcePath": "plugins/Workbench.Testing.Domain/OwnedLab/OwnedLaunchGate.cs",
+      "path": "plugins/Workbench.Testing.Domain/OwnedLab/OwnedLaunchGate.cs",
+      "length": 1181,
+      "sha256": "2d3a0707183a4fa7712a7c2f24341d4ed6c92f21e9c4968f7d62c098282b3a3f"
+    },
+    {
+      "sourcePath": "plugins/Workbench.Testing.Domain/OwnedLab/OwnedModels.cs",
+      "path": "plugins/Workbench.Testing.Domain/OwnedLab/OwnedModels.cs",
+      "length": 5121,
+      "sha256": "a1a520d549c784a07eb9e978b576383a610fdb425a637807e3313637a5b84b35"
+    },
+    {
+      "sourcePath": "plugins/Workbench.Testing.Domain/OwnedLab/OwnedPilotController.cs",
+      "path": "plugins/Workbench.Testing.Domain/OwnedLab/OwnedPilotController.cs",
+      "length": 11996,
+      "sha256": "a98ed61eb324af5a5c8bab187ec2789e73ba1a8fb5aa4d3d5ac0b51c950c2a98"
+    },
+    {
+      "sourcePath": "plugins/Workbench.Testing.Domain/OwnedLab/OwnedRunner.cs",
+      "path": "plugins/Workbench.Testing.Domain/OwnedLab/OwnedRunner.cs",
+      "length": 11242,
+      "sha256": "15fe3abd32d47e6d184d5e204d6301f7c3d81b96433291b1277fc7ec23c0e738"
+    },
+    {
+      "sourcePath": "plugins/Workbench.Testing.Domain/OwnedLab/OwnedWireCodec.cs",
+      "path": "plugins/Workbench.Testing.Domain/OwnedLab/OwnedWireCodec.cs",
+      "length": 9117,
+      "sha256": "27d65aa1d5f2ce529e4999d58d92a2bb5d3e16c4786ce314ffa5b88da2b1dfe2"
+    },
+    {
+      "sourcePath": "plugins/Workbench.Testing.Domain/RuleTestCaseGenerator.cs",
+      "path": "plugins/Workbench.Testing.Domain/RuleTestCaseGenerator.cs",
+      "length": 2741,
+      "sha256": "fcf6df1819c733e26abeeec941acf7522141d09b427603bb9d053ebc6581a296"
+    },
+    {
+      "sourcePath": "plugins/Workbench.Testing.Domain/SimulatedFrameRenderer.cs",
+      "path": "plugins/Workbench.Testing.Domain/SimulatedFrameRenderer.cs",
+      "length": 4282,
+      "sha256": "049f4ff79a38289cc14185f2d5ab943f6958233a94de75344f64d1eaa811de02"
+    },
+    {
+      "sourcePath": "plugins/Workbench.Testing.Domain/Sources/Figma/FigmaCapture.cs",
+      "path": "plugins/Workbench.Testing.Domain/Sources/Figma/FigmaCapture.cs",
+      "length": 963,
+      "sha256": "fef351e82b31e4ec1aac8a8672019db5a40648539c372ff638cf9be30fad0d5a"
+    },
+    {
+      "sourcePath": "plugins/Workbench.Testing.Domain/Sources/Figma/FigmaFileReader.cs",
+      "path": "plugins/Workbench.Testing.Domain/Sources/Figma/FigmaFileReader.cs",
+      "length": 6174,
+      "sha256": "0d4af56830237f03bd75ca3b89e0218bcaf9a8a12bc8ad0a8f23a73cefc0b1a1"
+    },
+    {
+      "sourcePath": "plugins/Workbench.Testing.Domain/Sources/Figma/FigmaInputCapture.cs",
+      "path": "plugins/Workbench.Testing.Domain/Sources/Figma/FigmaInputCapture.cs",
+      "length": 3864,
+      "sha256": "b395984b002b2fa4db3463e701a153ca8936a167c2fb515bd506994bcbda5781"
+    },
+    {
+      "sourcePath": "plugins/Workbench.Testing.Domain/Sources/Figma/FigmaReadException.cs",
+      "path": "plugins/Workbench.Testing.Domain/Sources/Figma/FigmaReadException.cs",
+      "length": 859,
+      "sha256": "84f6bccf4f1c8d00503097326ee5d239164a7485647fd8fcc47b91f75fc333e1"
+    },
+    {
+      "sourcePath": "plugins/Workbench.Testing.Domain/Sources/Figma/FigmaReadRequest.cs",
+      "path": "plugins/Workbench.Testing.Domain/Sources/Figma/FigmaReadRequest.cs",
+      "length": 282,
+      "sha256": "d78ef7ff33dd32f8ea022215cbae7e4be87ed26c823d041ed46afae42a05e1c7"
+    },
+    {
+      "sourcePath": "plugins/Workbench.Testing.Domain/Sources/Figma/FigmaResponseParser.cs",
+      "path": "plugins/Workbench.Testing.Domain/Sources/Figma/FigmaResponseParser.cs",
+      "length": 2507,
+      "sha256": "87e11dcba34ac1b7622d83321e7c1cf4210263f155e6111546a947adc75e16bd"
+    },
+    {
+      "sourcePath": "plugins/Workbench.Testing.Domain/Sources/Figma/FigmaSourceBuilder.cs",
+      "path": "plugins/Workbench.Testing.Domain/Sources/Figma/FigmaSourceBuilder.cs",
+      "length": 1393,
+      "sha256": "416edcb1cce8437327c252f1e4ad6496f7adefdb6f4173c3ca5b3ba1b733bc7e"
+    },
+    {
+      "sourcePath": "plugins/Workbench.Testing.Domain/Sources/FigmaSnapshotProvider.cs",
+      "path": "plugins/Workbench.Testing.Domain/Sources/FigmaSnapshotProvider.cs",
+      "length": 399,
+      "sha256": "14a3fa304f301c2b031d2c0601eb396520f3a66e324c5825872dc79cb670e6fa"
+    },
+    {
+      "sourcePath": "plugins/Workbench.Testing.Domain/Sources/LocalSnapshotParser.cs",
+      "path": "plugins/Workbench.Testing.Domain/Sources/LocalSnapshotParser.cs",
+      "length": 5855,
+      "sha256": "5e542888198b13ac83e6168298c75d04ddc668e757acc7b656ea804caf6d0ab8"
+    },
+    {
+      "sourcePath": "plugins/Workbench.Testing.Domain/Sources/RequirementSourceProvider.cs",
+      "path": "plugins/Workbench.Testing.Domain/Sources/RequirementSourceProvider.cs",
+      "length": 416,
+      "sha256": "a5b34f134dcd79d28cb1a0d47b5ee99f8941b0fb8de552b0e656ab764aaff0a7"
+    },
+    {
+      "sourcePath": "plugins/Workbench.Testing.Domain/Sources/TestSourceInput.cs",
+      "path": "plugins/Workbench.Testing.Domain/Sources/TestSourceInput.cs",
+      "length": 1143,
+      "sha256": "20339fc8b38a2e2f83f7f0e71bd7e1235e887d8bb22277e7d4f864f2f777a780"
+    },
+    {
+      "sourcePath": "plugins/Workbench.Testing.Domain/SyntheticTestingExamples.cs",
+      "path": "plugins/Workbench.Testing.Domain/SyntheticTestingExamples.cs",
+      "length": 596,
+      "sha256": "6a6bfbbbe3b03c9a684d3a4eaf6705589616c206f9cf95e0b80926624e3388e4"
+    },
+    {
+      "sourcePath": "plugins/Workbench.Testing.Domain/TestingController.Ai.cs",
+      "path": "plugins/Workbench.Testing.Domain/TestingController.Ai.cs",
+      "length": 4509,
+      "sha256": "aed2185e926bbe3fcda22bd7db5b41dab554e9ee37afd357503ac757845786b7"
+    },
+    {
+      "sourcePath": "plugins/Workbench.Testing.Domain/TestingController.Authoring.cs",
+      "path": "plugins/Workbench.Testing.Domain/TestingController.Authoring.cs",
+      "length": 5213,
+      "sha256": "c28a2ab1447ca8cdf28db9760c7be29ad05cd3df85ad00eee5df8ca484f6a561"
+    },
+    {
+      "sourcePath": "plugins/Workbench.Testing.Domain/TestingController.Figma.cs",
+      "path": "plugins/Workbench.Testing.Domain/TestingController.Figma.cs",
+      "length": 3098,
+      "sha256": "13a8ae75d1d34429a983cfa32fd5c44e5566603eea574ebe351bd1b13288f9cd"
+    },
+    {
+      "sourcePath": "plugins/Workbench.Testing.Domain/TestingController.Lifecycle.cs",
+      "path": "plugins/Workbench.Testing.Domain/TestingController.Lifecycle.cs",
+      "length": 3405,
+      "sha256": "445615b79bc4dab4f3dd861e215551abd0fa8fc2412354f2f807f4840b030ec7"
+    },
+    {
+      "sourcePath": "plugins/Workbench.Testing.Domain/TestingController.Runner.cs",
+      "path": "plugins/Workbench.Testing.Domain/TestingController.Runner.cs",
+      "length": 7026,
+      "sha256": "7b5e0c4334e459315d47b4805ceaf0e3d1800b7f958e08d9ed7f3737e04d554f"
+    },
+    {
+      "sourcePath": "plugins/Workbench.Testing.Domain/TestingController.Runs.cs",
+      "path": "plugins/Workbench.Testing.Domain/TestingController.Runs.cs",
+      "length": 11452,
+      "sha256": "02195d669037fab8dfe07fcf9867920ea3221854e082e0a68e78aaeb269753f5"
+    },
+    {
+      "sourcePath": "plugins/Workbench.Testing.Domain/TestingController.cs",
+      "path": "plugins/Workbench.Testing.Domain/TestingController.cs",
+      "length": 11708,
+      "sha256": "8d143050b56c43372d094ce482bfeb9e1e34fc2b290310b55aca1ddf76288fe4"
+    },
+    {
+      "sourcePath": "plugins/Workbench.Testing.Domain/TestingControllerModels.cs",
+      "path": "plugins/Workbench.Testing.Domain/TestingControllerModels.cs",
+      "length": 410,
+      "sha256": "6f1d9a7cc2948a2867c0f6cbd47cf1ad3ec5807f39faf1977b7b4ead5e0cb2ff"
+    },
+    {
+      "sourcePath": "plugins/Workbench.Testing.Domain/VirtualTaskFormAdapter.cs",
+      "path": "plugins/Workbench.Testing.Domain/VirtualTaskFormAdapter.cs",
+      "length": 3519,
+      "sha256": "fb2722a0bd0344e7936588f07555ce642df875edef3282ca267b9592eadc9875"
+    },
+    {
+      "sourcePath": "plugins/Workbench.Testing.Domain/Workbench.Testing.Domain.csproj",
+      "path": "plugins/Workbench.Testing.Domain/Workbench.Testing.Domain.csproj",
+      "length": 511,
+      "sha256": "4be0b92c529013bfdd5263e3a63ad0f930159e45b1e090e53370190090ad3ae5"
+    },
+    {
+      "sourcePath": "plugins/Workbench.Testing.Windows/OwnedDriverDescriptor.cs",
+      "path": "plugins/Workbench.Testing.Windows/OwnedDriverDescriptor.cs",
+      "length": 1492,
+      "sha256": "15650d9afbd41f26d6cf15069e79fcb7998ebdbdee1455a6768485cbea766b15"
+    },
+    {
+      "sourcePath": "plugins/Workbench.Testing.Windows/OwnedNativeMethods.cs",
+      "path": "plugins/Workbench.Testing.Windows/OwnedNativeMethods.cs",
+      "length": 13031,
+      "sha256": "adae3cb135d1eca3366266d6e4e45ca63075ce5a1a3c800aee6565f8722eda98"
+    },
+    {
+      "sourcePath": "plugins/Workbench.Testing.Windows/OwnedProcessSession.cs",
+      "path": "plugins/Workbench.Testing.Windows/OwnedProcessSession.cs",
+      "length": 26763,
+      "sha256": "80537ead85c8f94f77bf8728822b296f0443d3562369fa86edd808179345903d"
+    },
+    {
+      "sourcePath": "plugins/Workbench.Testing.Windows/Win32OwnedDriverFactory.cs",
+      "path": "plugins/Workbench.Testing.Windows/Win32OwnedDriverFactory.cs",
+      "length": 6534,
+      "sha256": "05b16dd56fb807bf335481284c5194f59cbe15c83458a7d323cc0047977ab055"
+    },
+    {
+      "sourcePath": "plugins/Workbench.Testing.Windows/Workbench.Testing.Windows.csproj",
+      "path": "plugins/Workbench.Testing.Windows/Workbench.Testing.Windows.csproj",
+      "length": 1588,
+      "sha256": "5fc4b53d249dba6af084e05cb7feb050e209b1c9f3698e93e316790cc606342a"
+    },
+    {
+      "sourcePath": "plugins/Workbench.Testing/NativeActionOwner.cs",
+      "path": "plugins/Workbench.Testing/NativeActionOwner.cs",
+      "length": 3318,
+      "sha256": "dc8e0447d2b77f307f2e0fd161cd9af4142e1917ecff26e139ce998b380c5970"
+    },
+    {
+      "sourcePath": "plugins/Workbench.Testing/NativeActivityCoordinator.cs",
+      "path": "plugins/Workbench.Testing/NativeActivityCoordinator.cs",
+      "length": 7167,
+      "sha256": "9fae987ead225967a584e45866c8067b131c65a2044a61a1311076edc9da06bf"
+    },
+    {
+      "sourcePath": "plugins/Workbench.Testing/NativeEventSelection.cs",
+      "path": "plugins/Workbench.Testing/NativeEventSelection.cs",
+      "length": 654,
+      "sha256": "4cf2ddfe4f180f3790641ef1ee485a87d2b6901aa1b9a7d029af40b782561d56"
+    },
+    {
+      "sourcePath": "plugins/Workbench.Testing/NativeEvidenceCache.cs",
+      "path": "plugins/Workbench.Testing/NativeEvidenceCache.cs",
+      "length": 990,
+      "sha256": "3404fbfb03f4e84e637cbceeb4b80de4a81a9287dbfdc70a1bbcd1648e4b902f"
+    },
+    {
+      "sourcePath": "plugins/Workbench.Testing/NativeInvocationFeedback.cs",
+      "path": "plugins/Workbench.Testing/NativeInvocationFeedback.cs",
+      "length": 758,
+      "sha256": "67557dbbb6c391b9269a21d02a45c0f80f6a3ccd6208dc699849deb0bda70196"
+    },
+    {
+      "sourcePath": "plugins/Workbench.Testing/NativeOwnedEvidence.cs",
+      "path": "plugins/Workbench.Testing/NativeOwnedEvidence.cs",
+      "length": 929,
+      "sha256": "5963b880802372a0ae7364f253cd9ab1649005e05a99ddfe0f80c61c8c05ae9e"
+    },
+    {
+      "sourcePath": "plugins/Workbench.Testing/NativeOwnedPilot.cs",
+      "path": "plugins/Workbench.Testing/NativeOwnedPilot.cs",
+      "length": 1215,
+      "sha256": "0c3f2f2ad943d9e37a6f38d951c842d1d92d22e36f31dfa425412b11fdaf2565"
+    },
+    {
+      "sourcePath": "plugins/Workbench.Testing/NativeRemoteOperation.cs",
+      "path": "plugins/Workbench.Testing/NativeRemoteOperation.cs",
+      "length": 4806,
+      "sha256": "fedd43596247ee82e90017c1df06e54a6a02faf48dfa00ed5afcd81f99ac2483"
+    },
+    {
+      "sourcePath": "plugins/Workbench.Testing/NativeRunAdmission.cs",
+      "path": "plugins/Workbench.Testing/NativeRunAdmission.cs",
+      "length": 610,
+      "sha256": "9bfd7e8ec5698d2ad6e5fdb8cae3d198aa8cfddeb35f4bafaeea2436c049d219"
+    },
+    {
+      "sourcePath": "plugins/Workbench.Testing/NativeSourceDraft.cs",
+      "path": "plugins/Workbench.Testing/NativeSourceDraft.cs",
+      "length": 5567,
+      "sha256": "6fd2c573fbd3694a0fe15acb6d5530e399914cc1d1919de5c48bbe34c40f8a46"
+    },
+    {
+      "sourcePath": "plugins/Workbench.Testing/NativeTestingFiles.cs",
+      "path": "plugins/Workbench.Testing/NativeTestingFiles.cs",
+      "length": 1894,
+      "sha256": "2287b2dc9043100c46c438d4fb7203da3bd59370fbfca2ecb31418965adca607"
+    },
+    {
+      "sourcePath": "plugins/Workbench.Testing/NativeTestingLifecycle.cs",
+      "path": "plugins/Workbench.Testing/NativeTestingLifecycle.cs",
+      "length": 9706,
+      "sha256": "70d34512363697129dcbeeaee72ef3c2bb77b50bb3dc61687dfaaa32433c8189"
+    },
+    {
+      "sourcePath": "plugins/Workbench.Testing/TestingOwnedPilotPanel.cs",
+      "path": "plugins/Workbench.Testing/TestingOwnedPilotPanel.cs",
+      "length": 14984,
+      "sha256": "97b3859110f813e3d1357a946fd28b39d1edd5661b8f0cdf1910430da93047c9"
+    },
+    {
+      "sourcePath": "plugins/Workbench.Testing/TestingPage.Pickers.cs",
+      "path": "plugins/Workbench.Testing/TestingPage.Pickers.cs",
+      "length": 1326,
+      "sha256": "2ff6c57708f3876f97b360e802ed22850c364c51c1c87c785d4842a604c01169"
+    },
+    {
+      "sourcePath": "plugins/Workbench.Testing/TestingPage.Rendering.cs",
+      "path": "plugins/Workbench.Testing/TestingPage.Rendering.cs",
+      "length": 12592,
+      "sha256": "4b991feebcad62b7437ce2c1bc78caacc9692e198d2aa071991d532d02225f4c"
+    },
+    {
+      "sourcePath": "plugins/Workbench.Testing/TestingPage.cs",
+      "path": "plugins/Workbench.Testing/TestingPage.cs",
+      "length": 13384,
+      "sha256": "6bb35ad90e7d1fcb8644733f2738b0b5741a786020d5889f2793a7f7b31a0af1"
+    },
+    {
+      "sourcePath": "plugins/Workbench.Testing/TestingPlugin.cs",
+      "path": "plugins/Workbench.Testing/TestingPlugin.cs",
+      "length": 13165,
+      "sha256": "20df40d82cca51aad6d8bbb35647662331101611162c2df2ed95abe1a4c56758"
+    },
+    {
+      "sourcePath": "plugins/Workbench.Testing/TestingSourcePanel.cs",
+      "path": "plugins/Workbench.Testing/TestingSourcePanel.cs",
+      "length": 6882,
+      "sha256": "7e509a15975fda1d20451397181aff44c6b2d9797514e2acc23533682cbaa184"
+    },
+    {
+      "sourcePath": "plugins/Workbench.Testing/TestingSourceServices.cs",
+      "path": "plugins/Workbench.Testing/TestingSourceServices.cs",
+      "length": 465,
+      "sha256": "f63426a667e4d3d1d8a688c469e8707dda0caf0ba75e18446fcce4f396367fbc"
+    },
+    {
+      "sourcePath": "plugins/Workbench.Testing/Workbench.Testing.csproj",
+      "path": "plugins/Workbench.Testing/Workbench.Testing.csproj",
+      "length": 923,
+      "sha256": "388797404b02f4178c98c696e1506ec5e3c9663a690b20183a963dc4134b2e2a"
+    },
+    {
+      "sourcePath": "plugins/Workbench.Testing/plugin.json",
+      "path": "plugins/Workbench.Testing/plugin.json",
+      "length": 644,
+      "sha256": "32597a2d035a995eedfb8702a57f333b1c2403daa517b583aee99eff9378fb3e"
+    },
+    {
+      "sourcePath": "scripts/OwnedLabProbeOutput.psm1",
+      "path": "scripts/OwnedLabProbeOutput.psm1",
+      "length": 2848,
+      "sha256": "0f226c12ea18f655d940f1dfb21d633f14c4da203e4bbeb27b97f1e11dbb0eff"
+    },
+    {
+      "sourcePath": "scripts/OwnedLabProbeStaging.psm1",
+      "path": "scripts/OwnedLabProbeStaging.psm1",
+      "length": 2075,
+      "sha256": "3de4dcad835fb8e856cf6bdd33fa5d45d92a6682e4fb6ddfd3a133d6ce449973"
+    },
+    {
+      "sourcePath": "scripts/TestingPluginDelivery.psm1",
+      "path": "scripts/TestingPluginDelivery.psm1",
+      "length": 24824,
+      "sha256": "128c5b3eff49cd5613aa194c2ba571eadb824d677480bfa1f90a877f85e41a94"
+    },
+    {
+      "sourcePath": "scripts/TestingPluginProbe.psm1",
+      "path": "scripts/TestingPluginProbe.psm1",
+      "length": 18369,
+      "sha256": "1d289e209af2293e20f6bb3f3af2a66860d0cb4e0d3fede6314a60685bf11336"
+    },
+    {
+      "sourcePath": "scripts/build-owned-lab.ps1",
+      "path": "scripts/build-owned-lab.ps1",
+      "length": 9579,
+      "sha256": "d9dfdf311d66a1fd979bc06c7f187b847bb44312442f388d1944ad3eb6403dd2"
+    },
+    {
+      "sourcePath": "scripts/owned-lab-probe.ps1",
+      "path": "scripts/owned-lab-probe.ps1",
+      "length": 6308,
+      "sha256": "359c054b846c30f14e511a8507c12cecd5dd5af1c9a35c7d09ba9e159a0d9682"
+    },
+    {
+      "sourcePath": "scripts/package-testing-plugin.ps1",
+      "path": "scripts/package-testing-plugin.ps1",
+      "length": 2175,
+      "sha256": "80f49ccbe915e995a13ce1bed6f3653d6933b4d3008f1978d05dd6565821b77f"
+    },
+    {
+      "sourcePath": "scripts/testing-plugin-probe.ps1",
+      "path": "scripts/testing-plugin-probe.ps1",
+      "length": 5400,
+      "sha256": "e226fefab9eb3deda824ad550b127b904ab3c1b0feccdd1c9baecb44b75c7a5c"
+    },
+    {
+      "sourcePath": "tests/Workbench.OwnedLab.NativeFixtures/CrashBroker.cpp",
+      "path": "tests/Workbench.OwnedLab.NativeFixtures/CrashBroker.cpp",
+      "length": 292,
+      "sha256": "b4c8798b392e0fcfe38528e64c2743bef8f8421b8c9638a8d7be0cabcfb6479a"
+    },
+    {
+      "sourcePath": "tests/Workbench.OwnedLab.NativeFixtures/HangBroker.cpp",
+      "path": "tests/Workbench.OwnedLab.NativeFixtures/HangBroker.cpp",
+      "length": 266,
+      "sha256": "274e86cb3c665e749acdf36fdf8920f9e51498134173426c060cee912f638871"
+    },
+    {
+      "sourcePath": "tests/Workbench.OwnedLab.NativeFixtures/Workbench.OwnedLab.NativeFixtures.csproj",
+      "path": "tests/Workbench.OwnedLab.NativeFixtures/Workbench.OwnedLab.NativeFixtures.csproj",
+      "length": 709,
+      "sha256": "beeb29aa84297f79f399a6b418dbb91b4fae55c4bb29fcf80bbb6f85fc8fccad"
+    },
+    {
+      "sourcePath": "tests/Workbench.OwnedLab.WindowsProbe/NativeChecks.cs",
+      "path": "tests/Workbench.OwnedLab.WindowsProbe/NativeChecks.cs",
+      "length": 23158,
+      "sha256": "8de4b97ac93ead102544500e608f3264967444dd957919192e4127cef8783e56"
+    },
+    {
+      "sourcePath": "tests/Workbench.OwnedLab.WindowsProbe/NativeFailureDiagnostic.cs",
+      "path": "tests/Workbench.OwnedLab.WindowsProbe/NativeFailureDiagnostic.cs",
+      "length": 3534,
+      "sha256": "a3b5801939172af87961b116578260f8ffd8f2ed2c8ede674588d1f01515a3d2"
+    },
+    {
+      "sourcePath": "tests/Workbench.OwnedLab.WindowsProbe/Program.cs",
+      "path": "tests/Workbench.OwnedLab.WindowsProbe/Program.cs",
+      "length": 1212,
+      "sha256": "a5cff28aab715e8af404896a88fb82dea6f319bb021b9bffa4efa706efe5e9f0"
+    },
+    {
+      "sourcePath": "tests/Workbench.OwnedLab.WindowsProbe/Workbench.OwnedLab.WindowsProbe.csproj",
+      "path": "tests/Workbench.OwnedLab.WindowsProbe/Workbench.OwnedLab.WindowsProbe.csproj",
+      "length": 531,
+      "sha256": "ebab52a32c4e8ad361ce54155274ad4f50cc2d58afc09722091ce15bebb0eda4"
+    },
+    {
+      "sourcePath": "tests/Workbench.Testing.PackageProbe/Program.cs",
+      "path": "tests/Workbench.Testing.PackageProbe/Program.cs",
+      "length": 2683,
+      "sha256": "35eadd84b5a7d84d5b0ae049945a04d5676ad29126ca18307052070fc63190be"
+    },
+    {
+      "sourcePath": "tests/Workbench.Testing.PackageProbe/Workbench.Testing.PackageProbe.csproj",
+      "path": "tests/Workbench.Testing.PackageProbe/Workbench.Testing.PackageProbe.csproj",
+      "length": 210,
+      "sha256": "e014587aedd78663d2cade2559bd292ab45aa2f64756479fe6d03536071dbe40"
+    },
+    {
+      "sourcePath": "tests/Workbench.Testing.SourceAcceptance/SourceAcceptanceHttpHandlers.cs",
+      "path": "tests/Workbench.Testing.SourceAcceptance/SourceAcceptanceHttpHandlers.cs",
+      "length": 11999,
+      "sha256": "737a20e8b2a6ef5da58166a39963fa6cdf8b3feaef57dab1205fe20e99321ee3"
+    },
+    {
+      "sourcePath": "tests/Workbench.Testing.SourceAcceptance/SourceAcceptanceOwnership.cs",
+      "path": "tests/Workbench.Testing.SourceAcceptance/SourceAcceptanceOwnership.cs",
+      "length": 1737,
+      "sha256": "c792226686e388abe93c34026e86ef0699c71ab5068408b4548266c159b2e7be"
+    },
+    {
+      "sourcePath": "tests/Workbench.Testing.SourceAcceptance/SourceAcceptancePlugin.cs",
+      "path": "tests/Workbench.Testing.SourceAcceptance/SourceAcceptancePlugin.cs",
+      "length": 2269,
+      "sha256": "b17ab08e70e1c130012a16d111266e4d72e1ea955a9130d3fb0cc7e7a18f10f1"
+    },
+    {
+      "sourcePath": "tests/Workbench.Testing.SourceAcceptance/SourceAcceptanceProtocol.cs",
+      "path": "tests/Workbench.Testing.SourceAcceptance/SourceAcceptanceProtocol.cs",
+      "length": 2865,
+      "sha256": "3b72dfa8c4e8418aef5774bea7e49e38b68d66eb31eaa52cdcb8e71d359c146c"
+    },
+    {
+      "sourcePath": "tests/Workbench.Testing.SourceAcceptance/SourceAcceptanceScenarioLedger.cs",
+      "path": "tests/Workbench.Testing.SourceAcceptance/SourceAcceptanceScenarioLedger.cs",
+      "length": 6764,
+      "sha256": "7a14b1789d010d7e1dbbb4f8e688e3652993279e052ea42b3bfe5e8071ca0336"
+    },
+    {
+      "sourcePath": "tests/Workbench.Testing.SourceAcceptance/Workbench.Testing.SourceAcceptance.csproj",
+      "path": "tests/Workbench.Testing.SourceAcceptance/Workbench.Testing.SourceAcceptance.csproj",
+      "length": 694,
+      "sha256": "88c50b4ae4e74fe93c2b79bc3ad7fac3f3dc13e4342bf05d08e518f4f33248be"
+    },
+    {
+      "sourcePath": "tests/Workbench.Testing.SourceAcceptance/plugin.json",
+      "path": "tests/Workbench.Testing.SourceAcceptance/plugin.json",
+      "length": 721,
+      "sha256": "1b7c5ca5f58f548cf8af5e4b9a28772c4d30eb581bd78ce21b6f381cd5ca1a41"
+    },
+    {
+      "sourcePath": "tests/Workbench.Core.Tests/AiGenerationClientTests.cs",
+      "path": "tests/Workbench.Testing.Tests/AiGenerationClientTests.cs",
+      "length": 49664,
+      "sha256": "39ce3fa9cbc33c6747fdf968c47a1cb9f6a8c38a5a31cae71dc36a6e3803ad69"
+    },
+    {
+      "sourcePath": "tests/Workbench.Core.Tests/AiGenerationControllerTests.Lifecycle.cs",
+      "path": "tests/Workbench.Testing.Tests/AiGenerationControllerTests.Lifecycle.cs",
+      "length": 13601,
+      "sha256": "131f9d7a6db403f6800f9498bbea9287a13f87e3160520ffb50f606dd9cb4508"
+    },
+    {
+      "sourcePath": "tests/Workbench.Core.Tests/AiGenerationControllerTests.Partial.cs",
+      "path": "tests/Workbench.Testing.Tests/AiGenerationControllerTests.Partial.cs",
+      "length": 11990,
+      "sha256": "94bd3ad167879424fad3aaa37162e544eb81f010727c7155cd6fff9a530c9857"
+    },
+    {
+      "sourcePath": "tests/Workbench.Core.Tests/AiGenerationControllerTests.Provenance.cs",
+      "path": "tests/Workbench.Testing.Tests/AiGenerationControllerTests.Provenance.cs",
+      "length": 6987,
+      "sha256": "87958f46f3f58b04ce24d21064d0ba0e066b04732410154231ecf70194dc7529"
+    },
+    {
+      "sourcePath": "tests/Workbench.Core.Tests/AiGenerationControllerTests.cs",
+      "path": "tests/Workbench.Testing.Tests/AiGenerationControllerTests.cs",
+      "length": 10605,
+      "sha256": "cc63dd0b31c5c92ad5eee49fc5eba5da2e058c5d445b32b541f944d24c2d71ff"
+    },
+    {
+      "sourcePath": "tests/Workbench.Core.Tests/BlockingCallbackCollection.cs",
+      "path": "tests/Workbench.Testing.Tests/BlockingCallbackCollection.cs",
+      "length": 953,
+      "sha256": "d539ffced0ef182b2d0c80ba19ef12cd12e46b778275b133be6f3bd1330b5cb6"
+    },
+    {
+      "sourcePath": "tests/Workbench.Core.Tests/FigmaCaptureTests.cs",
+      "path": "tests/Workbench.Testing.Tests/FigmaCaptureTests.cs",
+      "length": 30969,
+      "sha256": "2f29ffd10336a0a62f47270ea182996fc4ace1cc115f7641c5ee376860a371ce"
+    },
+    {
+      "sourcePath": "tests/Workbench.Core.Tests/FigmaControllerTests.cs",
+      "path": "tests/Workbench.Testing.Tests/FigmaControllerTests.cs",
+      "length": 41255,
+      "sha256": "cf876c2ac8ffc4bcf7e8a8fd3dc438955d5cf2b41ed12b5fa07e2eae9bc34359"
+    },
+    {
+      "sourcePath": "tests/Workbench.Core.Tests/OwnedAdmissionTests.cs",
+      "path": "tests/Workbench.Testing.Tests/OwnedAdmissionTests.cs",
+      "length": 10093,
+      "sha256": "dd7b784dee5dcdb824526a8fcf3fb895484eee38e70543b368798c61f5cfb507"
+    },
+    {
+      "sourcePath": "tests/Workbench.Core.Tests/OwnedFixedPlansTests.cs",
+      "path": "tests/Workbench.Testing.Tests/OwnedFixedPlansTests.cs",
+      "length": 3187,
+      "sha256": "0837ba7a122343c86265b9a55441f627e5f9590edb81af44ed79b0ab80207483"
+    },
+    {
+      "sourcePath": "tests/Workbench.Core.Tests/OwnedJournalTests.cs",
+      "path": "tests/Workbench.Testing.Tests/OwnedJournalTests.cs",
+      "length": 19105,
+      "sha256": "d6736759587c04301274fb97628f5c649edf7f1ef9803dd59fdf6b5571b0baed"
+    },
+    {
+      "sourcePath": "tests/Workbench.Core.Tests/OwnedLabTestRig.cs",
+      "path": "tests/Workbench.Testing.Tests/OwnedLabTestRig.cs",
+      "length": 8860,
+      "sha256": "dff29b869f8db86ed0be5e056f06b75bc525d79c5b55290a3d5ebd20ea1bab72"
+    },
+    {
+      "sourcePath": "tests/Workbench.Core.Tests/OwnedRunnerTests.cs",
+      "path": "tests/Workbench.Testing.Tests/OwnedRunnerTests.cs",
+      "length": 21243,
+      "sha256": "75e6eb01f2a5220352e5e3e553a524050b68775d7ea3351e66ed3ec3c9ca9c41"
+    },
+    {
+      "sourcePath": "tests/Workbench.Core.Tests/OwnedWireTests.cs",
+      "path": "tests/Workbench.Testing.Tests/OwnedWireTests.cs",
+      "length": 10970,
+      "sha256": "4c1078e4acbd6696d33bf609b5ec3d93c0aa4d1022aa8e0326841ebcb99c449c"
+    },
+    {
+      "sourcePath": "tests/Workbench.Core.Tests/SourceAcceptanceTests.Ownership.cs",
+      "path": "tests/Workbench.Testing.Tests/SourceAcceptanceTests.Ownership.cs",
+      "length": 14455,
+      "sha256": "dc2666f526612ac2e954a1019c45010e07f1b6944a769847c537fb93e43e6010"
+    },
+    {
+      "sourcePath": "tests/Workbench.Core.Tests/SourceAcceptanceTests.Transport.cs",
+      "path": "tests/Workbench.Testing.Tests/SourceAcceptanceTests.Transport.cs",
+      "length": 3571,
+      "sha256": "c037f0f22605e90c8a1659496449abce4b3247b2cff8ad2577da65ef97f03bbc"
+    },
+    {
+      "sourcePath": "tests/Workbench.Core.Tests/SourceAcceptanceTests.cs",
+      "path": "tests/Workbench.Testing.Tests/SourceAcceptanceTests.cs",
+      "length": 19491,
+      "sha256": "9d25bc624325971c1ea9be1d951ef7883078ef79beda6c9d9610fb662198e7af"
+    },
+    {
+      "sourcePath": "tests/Workbench.Core.Tests/TestDirectory.cs",
+      "path": "tests/Workbench.Testing.Tests/TestDirectory.cs",
+      "length": 4519,
+      "sha256": "f20c09dc0f66206d393fdfbb4fc5753a7208c52126f893273d2ed363f5920db5"
+    },
+    {
+      "sourcePath": "tests/Workbench.Core.Tests/TestDispatcher.cs",
+      "path": "tests/Workbench.Testing.Tests/TestDispatcher.cs",
+      "length": 1649,
+      "sha256": "27f388921afe4369c0e13a940e2770265be85627f06fcf446561f4728e4d0962"
+    },
+    {
+      "sourcePath": "tests/Workbench.Core.Tests/TestingAuthoringTests.cs",
+      "path": "tests/Workbench.Testing.Tests/TestingAuthoringTests.cs",
+      "length": 10884,
+      "sha256": "117b97a0002b09426d3412eb286e801dccc21190f91d77b95a9342983282771d"
+    },
+    {
+      "sourcePath": "tests/Workbench.Core.Tests/TestingControllerAdmissionTests.cs",
+      "path": "tests/Workbench.Testing.Tests/TestingControllerAdmissionTests.cs",
+      "length": 21965,
+      "sha256": "8bf21f06433c1a26915c44174daa342544ccd520e163a833ff48efd3f0dc7da7"
+    },
+    {
+      "sourcePath": "tests/Workbench.Core.Tests/TestingControllerTests.cs",
+      "path": "tests/Workbench.Testing.Tests/TestingControllerTests.cs",
+      "length": 30545,
+      "sha256": "0818b3c7f8c4ac0edf75e434e842246844d55cd8da652eb4a5d2c8841a0f04dc"
+    },
+    {
+      "sourcePath": "tests/Workbench.Core.Tests/TestingDomainFixture.cs",
+      "path": "tests/Workbench.Testing.Tests/TestingDomainFixture.cs",
+      "length": 8885,
+      "sha256": "745236e753604465749bba93004cfd274adfe2c1dc94355dbe93cebba9d0030a"
+    },
+    {
+      "sourcePath": "tests/Workbench.Core.Tests/TestingExecutionTests.cs",
+      "path": "tests/Workbench.Testing.Tests/TestingExecutionTests.cs",
+      "length": 3842,
+      "sha256": "ed4a0f7595a70523a34ec7b2b96c21a3a961d13eb7af553123d9e85b85abe2cb"
+    },
+    {
+      "sourcePath": "tests/Workbench.Core.Tests/TestingNativeActivityTests.cs",
+      "path": "tests/Workbench.Testing.Tests/TestingNativeActivityTests.cs",
+      "length": 23425,
+      "sha256": "9371c9cae1eb9955dc7553c611ef4348a2b9c662c060cda84164eead89a75bec"
+    },
+    {
+      "sourcePath": "tests/Workbench.Core.Tests/TestingNativeEvidenceTests.cs",
+      "path": "tests/Workbench.Testing.Tests/TestingNativeEvidenceTests.cs",
+      "length": 3713,
+      "sha256": "3533a3a68aec83d9cb072e790bf071a868738f36e9b5094b8d7148eb465c0c57"
+    },
+    {
+      "sourcePath": "tests/Workbench.Core.Tests/TestingNativeFeedbackTests.cs",
+      "path": "tests/Workbench.Testing.Tests/TestingNativeFeedbackTests.cs",
+      "length": 7614,
+      "sha256": "22fb58cb173a4588a4e3839922376447670c05ee8f2cc975374d53c94247e131"
+    },
+    {
+      "sourcePath": "tests/Workbench.Core.Tests/TestingNativeFileTests.cs",
+      "path": "tests/Workbench.Testing.Tests/TestingNativeFileTests.cs",
+      "length": 2175,
+      "sha256": "f55cf8a12c2caf411fdba8a1a6ce3cd2ee295f376b48a8424c9d587391a66629"
+    },
+    {
+      "sourcePath": "tests/Workbench.Core.Tests/TestingNativeLifecycleTests.cs",
+      "path": "tests/Workbench.Testing.Tests/TestingNativeLifecycleTests.cs",
+      "length": 17424,
+      "sha256": "9c563c93feeb5a5248d25a0fefeb286d607ebf15457d5d6d89214c9904248363"
+    },
+    {
+      "sourcePath": "tests/Workbench.Core.Tests/TestingNativeOwnedEvidenceTests.cs",
+      "path": "tests/Workbench.Testing.Tests/TestingNativeOwnedEvidenceTests.cs",
+      "length": 3028,
+      "sha256": "681d4222a3a99489705393831297335d119796602f0ce0c3cb6e37b8a05a18a7"
+    },
+    {
+      "sourcePath": "tests/Workbench.Core.Tests/TestingNativeOwnedPilotTests.cs",
+      "path": "tests/Workbench.Testing.Tests/TestingNativeOwnedPilotTests.cs",
+      "length": 12964,
+      "sha256": "4056636b136285f0d164bdd99231c5c60252fe3a07202ed4528688d79ec2f20e"
+    },
+    {
+      "sourcePath": "tests/Workbench.Core.Tests/TestingNativeOwnershipTests.cs",
+      "path": "tests/Workbench.Testing.Tests/TestingNativeOwnershipTests.cs",
+      "length": 3255,
+      "sha256": "bbb04e1b9d7fa8cbb02646265096079c76f4ff527467317ecb36227382e07426"
+    },
+    {
+      "sourcePath": "tests/Workbench.Core.Tests/TestingNativeRemoteTests.cs",
+      "path": "tests/Workbench.Testing.Tests/TestingNativeRemoteTests.cs",
+      "length": 7298,
+      "sha256": "5af0aa953a418207617b0236ff179be620cd69a5364cc19be59cb967ee15524d"
+    },
+    {
+      "sourcePath": "tests/Workbench.Core.Tests/TestingNativeSelectionTests.cs",
+      "path": "tests/Workbench.Testing.Tests/TestingNativeSelectionTests.cs",
+      "length": 3994,
+      "sha256": "66e35c2060978b2ff8a6ef88faf731638b2e743cd7d0f19864dc6ee67e284311"
+    },
+    {
+      "sourcePath": "tests/Workbench.Core.Tests/TestingNativeSourceTests.cs",
+      "path": "tests/Workbench.Testing.Tests/TestingNativeSourceTests.cs",
+      "length": 9052,
+      "sha256": "9d44eeecf33b84dba26118eaf4568d45f05006e2b25fb7d65bfc7d916f8b83d2"
+    },
+    {
+      "sourcePath": "tests/Workbench.Core.Tests/TestingSourceTests.cs",
+      "path": "tests/Workbench.Testing.Tests/TestingSourceTests.cs",
+      "length": 15058,
+      "sha256": "fdf212da3b6f94fa43e273a418799542623bf15311346cfb3e331f36396dc491"
+    },
+    {
+      "sourcePath": "tests/scripts/OwnedLabBuild.Tests.ps1",
+      "path": "tests/scripts/OwnedLabBuild.Tests.ps1",
+      "length": 6591,
+      "sha256": "87f5850f9f28b5a6df124d83a3b9a29a1775e20af98dafc72e75b503ea7d780b"
+    },
+    {
+      "sourcePath": "tests/scripts/OwnedLabProbeOutput.Tests.ps1",
+      "path": "tests/scripts/OwnedLabProbeOutput.Tests.ps1",
+      "length": 13146,
+      "sha256": "0bd7acc9a7195ec7fa8d4cc8f3018f2aea983b006c9e30e03c29127b2759030c"
+    },
+    {
+      "sourcePath": "tests/scripts/OwnedLabProbeStaging.Tests.ps1",
+      "path": "tests/scripts/OwnedLabProbeStaging.Tests.ps1",
+      "length": 8251,
+      "sha256": "8501a9cac088e9cb8e10f315df49c71dcd1536e616ae38ff7fa4d2d1a255ae8e"
+    },
+    {
+      "sourcePath": "tests/scripts/TestingPluginPackage.Tests.ps1",
+      "path": "tests/scripts/TestingPluginPackage.Tests.ps1",
+      "length": 14975,
+      "sha256": "54fb23629e4da94fd0ea19656fe4f3a6807b39ebc619077aaa2564627f6f3220"
+    },
+    {
+      "sourcePath": "tests/scripts/TestingPluginProbe.Tests.ps1",
+      "path": "tests/scripts/TestingPluginProbe.Tests.ps1",
+      "length": 26244,
+      "sha256": "8f324a608c890b260b73946fc403ddf0ed42382cda7ea7966fef5365fca6b3b3"
+    }
+  ]
+}
