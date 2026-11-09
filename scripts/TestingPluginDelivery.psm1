@@ -73,10 +73,24 @@ function Get-TestingSourceFiles {
         @{ path = $_; length = $file.Length; sha256 = (Get-FileHash -LiteralPath $file.FullName -Algorithm SHA256).Hash.ToLowerInvariant() }
     })
 }
-function Get-TestingPinnedHostCommit {
+function Get-TestingHostProfile {
+    if ([string]::IsNullOrEmpty($env:WORKBENCH_HOST_PROFILE) -or $env:WORKBENCH_HOST_PROFILE -ceq 'production') { return 'production' }
+    if ($env:WORKBENCH_HOST_PROFILE -ceq 'source-acceptance') { return 'source-acceptance' }
+    throw 'TestingHostProfileInvalid'
+}
+function Get-TestingPinnedSdkCommit {
     $repo = Split-Path $PSScriptRoot -Parent
     $lock = Get-Content -LiteralPath (Join-Path $repo 'eng/host-sdk.lock.json') -Raw | ConvertFrom-Json -AsHashtable
     if ($lock.sourceCommit -cnotmatch '^[0-9a-f]{40}$' -or $lock.sdkVersion -cne '0.4.0') { throw 'TestingHostLockInvalid' }
+    return $lock.sourceCommit
+}
+function Get-TestingPinnedHostCommit {
+    $sdkCommit = Get-TestingPinnedSdkCommit
+    if ((Get-TestingHostProfile) -ceq 'production') { return $sdkCommit }
+    $repo = Split-Path $PSScriptRoot -Parent
+    $lock = Get-Content -LiteralPath (Join-Path $repo 'eng/host-acceptance.lock.json') -Raw | ConvertFrom-Json -AsHashtable
+    if ($lock.schemaVersion -ne 1 -or $lock.repository -cne 'https://github.com/ThaoKeeton/project-workbench.git' -or
+        $lock.sourceCommit -cnotmatch '^[0-9a-f]{40}$' -or $lock.sdkSourceCommit -cne $sdkCommit -or $lock.sdkVersion -cne '0.4.0') { throw 'TestingHostLockInvalid' }
     return $lock.sourceCommit
 }
 function Get-TestingHostAppDirectory {
@@ -87,7 +101,7 @@ function Get-TestingSdkIdentity {
     $repo = Split-Path $PSScriptRoot -Parent
     $root = Join-Path $repo 'artifacts/host-sdk'
     $manifest = Get-Content -LiteralPath (Join-Path $root 'manifest.json') -Raw | ConvertFrom-Json -AsHashtable
-    if ($manifest.referenceOnly -or $manifest.sourceCommit -cne (Get-TestingPinnedHostCommit) -or @($manifest.packages).Count -ne 2) { throw 'TestingProductionSdkRequired' }
+    if ($manifest.referenceOnly -or $manifest.sourceCommit -cne (Get-TestingPinnedSdkCommit) -or @($manifest.packages).Count -ne 2) { throw 'TestingProductionSdkRequired' }
     foreach ($record in $manifest.packages) {
         if ($record.path -cnotmatch '^packages/Workbench\.(WinUI\.)?Sdk\.0\.4\.0\.nupkg$') { throw 'TestingSdkPackageInvalid' }
         $file = Get-Item -LiteralPath (Join-Path $root $record.path)
@@ -99,8 +113,23 @@ function Get-TestingSdkIdentity {
     if ($LASTEXITCODE -ne 0) { throw 'TestingSdkConsumptionMismatch' }
     return $manifest
 }
+function Assert-TestingJsonEqual {
+    param($First, $Second, [string]$Code)
+    $a = [Text.Json.JsonDocument]::Parse(($First | ConvertTo-Json -Depth 50 -Compress))
+    $b = [Text.Json.JsonDocument]::Parse(($Second | ConvertTo-Json -Depth 50 -Compress))
+    try { if (-not [Text.Json.JsonElement]::DeepEquals($a.RootElement,$b.RootElement)) { throw $Code } }
+    finally { $a.Dispose(); $b.Dispose() }
+}
 function Get-TestingHostIdentity {
     param([string]$AppDirectory, [string]$SourceCommit)
+    if ((Get-TestingHostProfile) -ceq 'source-acceptance') {
+        $repo = Split-Path $PSScriptRoot -Parent
+        $hostRoot = if ($env:WORKBENCH_ACCEPTANCE_HOST_ROOT) { $env:WORKBENCH_ACCEPTANCE_HOST_ROOT } else { Join-Path $repo '.host/acceptance-host' }
+        $python = (Get-Command python3, python -ErrorAction SilentlyContinue | Select-Object -First 1).Source
+        if (-not $python) { throw 'TestingHostVerificationRequiresPython' }
+        & $python (Join-Path $PSScriptRoot 'verify-acceptance-host.py') --host-root $hostRoot | Out-Host
+        if ($LASTEXITCODE -ne 0) { throw 'TestingAcceptanceHostSourceMismatch' }
+    }
     $dll = Join-Path $AppDirectory 'Workbench.App.dll'
     $exe = Join-Path $AppDirectory 'Workbench.App.exe'
     $version = [Diagnostics.FileVersionInfo]::GetVersionInfo($dll)
@@ -272,7 +301,8 @@ function New-TestingPluginDelivery {
         $zipName = 'workbench-testing-plugin-0.2.0.zip'
         $zip = Join-Path $OutputDirectory $zipName
         [IO.Compression.ZipFile]::CreateFromDirectory($stage, $zip)
-        $metadata = @{ schemaVersion = 1; pluginId = 'com.projectworkbench.testing'; version = '0.2.0'; minimumHostVersion = '0.4.0'; sourceCommit = $sourceCommit; sourceTreeDirty = $dirty; referenceOnly = $false; helper = $helper; nativeBuild = $nativeBuild; host = $hostIdentity; sdk = $sdkIdentity; managed = $managed; migratedFrom = (Get-Content (Join-Path $repo 'eng/migration-source.json') -Raw | ConvertFrom-Json -AsHashtable).sourceCommit; sourceFiles = $sourceFiles; payload = $payload; zip = @{ path = $zipName; length = (Get-Item $zip).Length; sha256 = (Get-FileHash $zip -Algorithm SHA256).Hash.ToLowerInvariant() }; createdUtc = [DateTimeOffset]::UtcNow.ToString('O') }
+        $sdkManifestSha = (Get-FileHash -LiteralPath (Join-Path $repo 'artifacts/host-sdk/manifest.json') -Algorithm SHA256).Hash.ToLowerInvariant()
+        $metadata = @{ schemaVersion = 1; pluginId = 'com.projectworkbench.testing'; version = '0.2.0'; minimumHostVersion = '0.4.0'; sourceRepository = 'https://github.com/ThaoKeeton/workbench-testing'; hostRepository = 'https://github.com/ThaoKeeton/project-workbench'; sourceCommit = $sourceCommit; sourceTreeDirty = $dirty; referenceOnly = $false; helper = $helper; nativeBuild = $nativeBuild; host = $hostIdentity; sdk = $sdkIdentity; sdkManifestSha256 = $sdkManifestSha; managed = $managed; migratedFrom = (Get-Content (Join-Path $repo 'eng/migration-source.json') -Raw | ConvertFrom-Json -AsHashtable).sourceCommit; sourceFiles = $sourceFiles; payload = $payload; zip = @{ path = $zipName; length = (Get-Item $zip).Length; sha256 = (Get-FileHash $zip -Algorithm SHA256).Hash.ToLowerInvariant() }; createdUtc = [DateTimeOffset]::UtcNow.ToString('O') }
         $metadata | ConvertTo-Json -Depth 20 | Set-Content (Join-Path $OutputDirectory 'provenance.json') -Encoding utf8
         @"
 # Independent testing plugin 0.2.0
@@ -309,9 +339,16 @@ function Test-TestingPluginDelivery {
     if (-not $metadata.referenceOnly -and $metadata.sourceTreeDirty) { throw 'TestingDeliveryDirtySource' }
     if (-not $metadata.referenceOnly) {
         $expectedHostCommit = Get-TestingPinnedHostCommit
-        if ($metadata.host.sourceCommit -cne $expectedHostCommit -or $metadata.sdk.sourceCommit -cne $expectedHostCommit -or $metadata.sdk.referenceOnly) { throw 'TestingHostPairingMismatch' }
+        if ($metadata.host.sourceCommit -cne $expectedHostCommit -or $metadata.sdk.sourceCommit -cne (Get-TestingPinnedSdkCommit) -or $metadata.sdk.referenceOnly) { throw 'TestingHostPairingMismatch' }
         $actualHost = Get-TestingHostIdentity -AppDirectory $AppDirectory -SourceCommit (Get-TestingPinnedHostCommit)
         foreach ($key in $actualHost.Keys) { if ($metadata.host[$key] -cne $actualHost[$key]) { throw 'TestingHostPairingMismatch' } }
+        if ((Get-TestingHostProfile) -ceq 'source-acceptance') {
+            $actualSdk = Get-TestingSdkIdentity
+            Assert-TestingJsonEqual $metadata.sdk $actualSdk 'TestingSdkPairingMismatch'
+            $actualManifestSha = (Get-FileHash -LiteralPath (Join-Path $repo 'artifacts/host-sdk/manifest.json') -Algorithm SHA256).Hash.ToLowerInvariant()
+            if (-not $metadata.ContainsKey('sdkManifestSha256') -or $metadata.sdkManifestSha256 -cne $actualManifestSha -or
+                $metadata.sourceRepository -cne 'https://github.com/ThaoKeeton/workbench-testing' -or $metadata.hostRepository -cne 'https://github.com/ThaoKeeton/project-workbench') { throw 'TestingSdkPairingMismatch' }
+        }
     }
     elseif ($null -ne $metadata.host) { throw 'TestingReferenceHostClaimInvalid' }
     $sums = @(Get-Content -LiteralPath (Join-Path $Directory 'SHA256SUMS'))
@@ -366,6 +403,16 @@ function Test-TestingSourceFixtureDelivery {
         $metadata.version -cne '0.2.0' -or $metadata.apiVersion -ne 1 -or $metadata.minimumHostVersion -cne '0.4.0' -or
         $metadata.sourceCommit -cne $productionMetadata.sourceCommit -or $metadata.hostSourceCommit -cne (Get-TestingPinnedHostCommit) -or
         $metadata.pairedProductionSha256 -cne $productionMetadata.zip.sha256) { throw 'TestingProductionPairMismatch' }
+    if ((Get-TestingHostProfile) -ceq 'source-acceptance') {
+        foreach ($key in @('sourceRepository','hostRepository','sourceTreeDirty','referenceOnly','sdkSourceCommit','host','sdk','sdkManifestSha256')) {
+            if (-not $metadata.ContainsKey($key)) { throw 'TestingSourceFixtureIdentityInvalid' }
+        }
+        if ($metadata.sourceRepository -cne 'https://github.com/ThaoKeeton/workbench-testing' -or $metadata.hostRepository -cne 'https://github.com/ThaoKeeton/project-workbench' -or
+            $metadata.sourceTreeDirty -or $metadata.referenceOnly -or $metadata.sdkSourceCommit -cne (Get-TestingPinnedSdkCommit) -or
+            $metadata.sdkManifestSha256 -cne $productionMetadata.sdkManifestSha256) { throw 'TestingProductionPairMismatch' }
+        Assert-TestingJsonEqual $metadata.host $productionMetadata.host 'TestingProductionPairMismatch'
+        Assert-TestingJsonEqual $metadata.sdk $productionMetadata.sdk 'TestingProductionPairMismatch'
+    }
     $sums = @(Get-Content -LiteralPath (Join-Path $Directory 'SHA256SUMS'))
     if ($sums.Count -ne 3) { throw 'TestingDeliverySumsInvalid' }
     foreach ($file in @('README.md','provenance.json',$zipName)) {
@@ -421,7 +468,7 @@ function New-TestingSourceFixtureDelivery {
             Read-TestingPluginArchive -ZipPath $zipStage -PayloadRecords $payload -Profile SourceAcceptance | Out-Null
             New-Item $OutputDirectory -ItemType Directory -Force | Out-Null
             $zip = Join-Path $OutputDirectory $zipName; Copy-Item -LiteralPath $zipStage $zip
-            $metadata = @{ schemaVersion=1; profile='SourceAcceptance'; pluginId='com.projectworkbench.testing.source-acceptance'; version='0.2.0'; apiVersion=1; minimumHostVersion='0.4.0'; sourceCommit=$productionMetadata.sourceCommit; hostSourceCommit=(Get-TestingPinnedHostCommit); pairedProductionSha256=$productionMetadata.zip.sha256; managed=$managed; payload=$payload; zip=@{path=$zipName; length=(Get-Item $zip).Length; sha256=(Get-FileHash $zip -Algorithm SHA256).Hash.ToLowerInvariant()}; createdUtc=[DateTimeOffset]::UtcNow.ToString('O') }
+            $metadata = @{ schemaVersion=1; profile='SourceAcceptance'; pluginId='com.projectworkbench.testing.source-acceptance'; version='0.2.0'; apiVersion=1; minimumHostVersion='0.4.0'; sourceRepository='https://github.com/ThaoKeeton/workbench-testing'; hostRepository='https://github.com/ThaoKeeton/project-workbench'; sourceCommit=$productionMetadata.sourceCommit; sourceTreeDirty=$false; referenceOnly=$false; hostSourceCommit=(Get-TestingPinnedHostCommit); sdkSourceCommit=(Get-TestingPinnedSdkCommit); host=$productionMetadata.host; sdk=$productionMetadata.sdk; sdkManifestSha256=$productionMetadata.sdkManifestSha256; pairedProductionSha256=$productionMetadata.zip.sha256; managed=$managed; payload=$payload; zip=@{path=$zipName; length=(Get-Item $zip).Length; sha256=(Get-FileHash $zip -Algorithm SHA256).Hash.ToLowerInvariant()}; createdUtc=[DateTimeOffset]::UtcNow.ToString('O') }
             $metadata | ConvertTo-Json -Depth 40 | Set-Content (Join-Path $OutputDirectory 'provenance.json') -Encoding utf8
             'Synthetic SourceAcceptance fixture only. This is paired with a specific production ZIP and uses in-memory HTTP; it is not a normal plugin delivery and does not prove native UI or live provider acceptance.' | Set-Content (Join-Path $OutputDirectory 'README.md') -Encoding utf8
             @($zipName,'provenance.json','README.md' | ForEach-Object { (Get-FileHash (Join-Path $OutputDirectory $_) -Algorithm SHA256).Hash.ToLowerInvariant() + '  ' + $_ }) | Set-Content (Join-Path $OutputDirectory 'SHA256SUMS') -Encoding utf8

@@ -117,10 +117,11 @@ function Change-Evidence($r, [string]$directory, [string]$Id, [scriptblock]$Chan
     Write-Json $path $data; Rehash-Evidence $r $directory
 }
 
-function Complete([string]$Path, [string]$Phase = 'stop-figma', [long]$ObservedBirth = $birth, [string[]]$Leases = @($ownedRoot), [bool]$Exited = $true, $ExitCode = 0, [bool]$Terminated = $false) {
+function Complete([string]$Path, [string]$Phase = 'stop-figma', [long]$ObservedBirth = $birth, [string[]]$Leases = @($ownedRoot), [bool]$Exited = $true, $ExitCode = 0, [bool]$Terminated = $false, [AllowNull()][Collections.IDictionary]$Cross = $null) {
     if ($Phase -ceq 'verify' -and -not $PSBoundParameters.ContainsKey('ObservedBirth')) { $ObservedBirth = $birth + 1 }
     $seedArgs = @{}
     if ($Phase -ceq 'verify') { $seedArgs.ExpectedSeed = $script:comparisonSeed }
+    if ($null -ne $Cross) { $seedArgs.ExpectedCrossIdentity = $Cross }
     $result = Complete-SourceAcceptanceProbeReport @seedArgs -ReportPath $Path -ProcessId 501 -ProcessCreationFileTimeUtc $ObservedBirth -ProcessExitFileTimeUtc ($ObservedBirth + 10000) `
         -HasExited $Exited -ExitCode $ExitCode -ExpectedPhase $Phase -ExpectedRoot $ownedRoot -LeaseRoots $Leases `
         -ExpectedPackageHash $hash -ExpectedSourceCommit $commit -ExpectedHostExeHash $hash -ExpectedHostDllHash $hash -Terminated $Terminated
@@ -202,6 +203,32 @@ if ((@(Get-SourceAcceptanceRequiredChecks seed) -join '|') -cne ($expectedSeed -
 # A complete source-only Stop report needs no virtual run/BMP/CSV (production validator remains separate).
 $ok = Join-Path $temp 'ok.json'; Write-Json $ok (New-Native 'stop-figma')
 Complete $ok | Out-Null; $script:cases++
+# A cross-repository report must bind every independently expected identity and hash.
+$cross = @{ hostSourceCommit='c'*40; sdkSourceCommit='d'*40; pairedProductionSha256='1'*64; sdkManifestSha256='2'*64;
+    sdkCorePackageSha256='3'*64; sdkWinUiPackageSha256='4'*64; hostCoreSdkSha256='5'*64; hostWinUiSdkSha256='6'*64 }
+function New-CrossReport {
+    $r = New-Native 'stop-figma'; $r.schemaVersion = 2
+    foreach ($key in $cross.Keys) { $r[$key] = $cross[$key] }
+    return $r
+}
+$crossOk = Join-Path $temp 'cross-ok.json'; Write-Json $crossOk (New-CrossReport)
+Complete $crossOk -Cross $cross | Out-Null; $script:cases++
+foreach ($key in $cross.Keys) {
+    $path = Join-Path $temp ("cross-mismatch-$key.json"); $r = New-CrossReport
+    $r[$key] = if ($key.EndsWith('Commit')) { 'e'*40 } else { 'e'*64 }; Write-Json $path $r
+    Assert-Refused { Complete $path -Cross $cross }
+}
+$crossMissing = Join-Path $temp 'cross-missing.json'; $r = New-CrossReport; $r.Remove('sdkManifestSha256'); Write-Json $crossMissing $r
+Assert-Refused { Complete $crossMissing -Cross $cross }
+$crossExtra = Join-Path $temp 'cross-extra.json'; $r = New-CrossReport; $r.unexpected = 'ignored'; Write-Json $crossExtra $r
+Assert-Refused { Complete $crossExtra -Cross $cross }
+$crossLegacy = Join-Path $temp 'cross-as-legacy.json'; Write-Json $crossLegacy (New-CrossReport)
+Assert-Refused { Complete $crossLegacy }
+$legacyCross = Join-Path $temp 'legacy-as-cross.json'; Write-Json $legacyCross (New-Native 'stop-figma')
+Assert-Refused { Complete $legacyCross -Cross $cross }
+$badExpected = Join-Path $temp 'cross-invalid-expected.json'; $r = New-CrossReport; Write-Json $badExpected $r
+$invalidCross = $cross.Clone(); $invalidCross.sdkSourceCommit = 'bad'
+Assert-Refused { Complete $badExpected -Cross $invalidCross }
 foreach ($mutation in @(
     @{ n = 'missing-hold-binding'; m = { param($r) $r.Remove('holds') } },
     @{ n = 'wrong-hold-run'; m = { param($r) $r.holds[0].descriptor.runId = 'f' * 32 } },
@@ -321,6 +348,29 @@ $completed = @(Invoke-SourceAcceptanceProbePhases @phaseArgs -OutputDirectory (J
     $observation.LeaseRoots=$r.roots; Write-Json $report $r
 })
 if ($rows.Count -ne 4 -or $completed.Count -ne 4) { throw 'Four process birth tuples were not accepted.' }; $script:cases++
+$crossRows = [Collections.Generic.List[string]]::new()
+$crossCompleted = @(Invoke-SourceAcceptanceProbePhases @phaseArgs -ExpectedCrossIdentity $cross -OutputDirectory (Join-Path $temp 'cross-phases') -Observe {
+    param($phase,$root,$report,$observation)
+    $crossRows.Add($phase); $observedBirth=$birth+$crossRows.Count
+    $observation.ProcessId=501; $observation.ProcessCreationFileTimeUtc=$observedBirth; $observation.ProcessExitFileTimeUtc=$observedBirth+10000
+    $observation.HasExited=$true; $observation.ExitCode=0
+    $r=New-Native $phase $root; $r.schemaVersion=2; foreach ($key in $cross.Keys) { $r[$key]=$cross[$key] }
+    $r.processCreationFileTimeUtc=$observedBirth; Add-RecordFixture $r (Split-Path $report -Parent)
+    $observation.LeaseRoots=$r.roots; Write-Json $report $r
+})
+if ($crossRows.Count -ne 4 -or $crossCompleted.Count -ne 4 -or @($crossCompleted | Where-Object { $_.crossIdentity.hostSourceCommit -cne $cross.hostSourceCommit }).Count -ne 0) { throw 'Cross identities did not survive all four phases.' }; $script:cases++
+$crossFailedRows = [Collections.Generic.List[string]]::new()
+Assert-Refused { Invoke-SourceAcceptanceProbePhases @phaseArgs -ExpectedCrossIdentity $cross -OutputDirectory (Join-Path $temp 'cross-phases-mismatch') -Observe {
+    param($phase,$root,$report,$observation)
+    $crossFailedRows.Add($phase); $observedBirth=$birth+$crossFailedRows.Count
+    $observation.ProcessId=501; $observation.ProcessCreationFileTimeUtc=$observedBirth; $observation.ProcessExitFileTimeUtc=$observedBirth+10000
+    $observation.HasExited=$true; $observation.ExitCode=0
+    $r=New-Native $phase $root; $r.schemaVersion=2; foreach ($key in $cross.Keys) { $r[$key]=$cross[$key] }
+    if ($phase -ceq 'stop-figma') { $r.sdkSourceCommit='f'*40 }
+    $r.processCreationFileTimeUtc=$observedBirth; Add-RecordFixture $r (Split-Path $report -Parent)
+    $observation.LeaseRoots=$r.roots; Write-Json $report $r
+} }
+if ($crossFailedRows.Count -ne 3) { throw 'A cross-identity failure launched a subsequent process.' }
 $failedRows = [Collections.Generic.List[string]]::new()
 Assert-Refused { Invoke-SourceAcceptanceProbePhases @phaseArgs -OutputDirectory (Join-Path $temp 'phases-failed') -Observe {
     param($phase,$root,$report,$observation)

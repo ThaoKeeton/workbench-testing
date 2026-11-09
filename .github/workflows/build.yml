@@ -70,6 +70,67 @@ jobs:
             artifacts/host-sdk/manifest.json
           if-no-files-found: error
           retention-days: 7
+  source-cross-windows:
+    runs-on: windows-2025
+    timeout-minutes: 35
+    env:
+      WORKBENCH_HOST_PROFILE: source-acceptance
+      WORKBENCH_ACCEPTANCE_HOST_ROOT: ${{ github.workspace }}/.host/acceptance-host
+      WORKBENCH_HOST_APP_DIRECTORY: ${{ github.workspace }}/.host/acceptance-host/artifacts/native/app
+    steps:
+      - uses: actions/checkout@v7.0.1
+      - uses: actions/checkout@v7.0.1
+        with:
+          repository: ThaoKeeton/project-workbench
+          ref: 655d7b6496067daad7c5e4cefb1f1da1b8379536
+          path: .host/project-workbench
+          persist-credentials: false
+      - uses: actions/checkout@v7.0.1
+        with:
+          repository: ThaoKeeton/project-workbench
+          ref: 9d7821bddba17fd3f40958f708d1ceee2c770505
+          path: .host/acceptance-host
+          persist-credentials: false
+      - uses: actions/setup-dotnet@v6.1.0
+        with:
+          global-json-file: global.json
+      - name: Verify locked host and SDK sources
+        shell: pwsh
+        run: |
+          ./scripts/assert-powershell-runtime.ps1
+          python scripts/verify-acceptance-host.py
+          if ($LASTEXITCODE -ne 0) { throw 'Acceptance host source verification failed.' }
+          python scripts/prepare-host-sdk.py
+          if ($LASTEXITCODE -ne 0) { throw 'Pinned SDK preparation failed.' }
+      - name: Publish isolated acceptance host
+        shell: pwsh
+        run: |
+          dotnet publish .host/acceptance-host/src/Workbench.App/Workbench.App.csproj -c Release -r win-x64 --self-contained true -o .host/acceptance-host/artifacts/native/app -p:SourceRevisionId=9d7821bddba17fd3f40958f708d1ceee2c770505
+          if ($LASTEXITCODE -ne 0) { throw 'Acceptance host publish failed.' }
+          if (-not (Test-Path .host/acceptance-host/artifacts/native/app/Workbench.App.pri)) { throw 'Acceptance host PRI missing.' }
+      - name: Build and audit independently paired plugin and fixture
+        shell: pwsh
+        run: |
+          ./scripts/package-testing-source-fixture.ps1
+          ./tests/scripts/TestingSourceFixtureDelivery.Tests.ps1 -Directory ./artifacts/native/source-acceptance-fixture -ProductionDirectory ./artifacts/native/source-paired-production
+          ./tests/scripts/ManagedSourceFixtureClosure.Tests.ps1 -BuildDirectory ./artifacts/testing-source-package-build -HostDirectory ./.host/acceptance-host/artifacts/native/app -PluginCommit ((git rev-parse HEAD).Trim()) -HostCommit '9d7821bddba17fd3f40958f708d1ceee2c770505'
+          New-Item ./artifacts/testing-source-package-build/reference -ItemType Directory -Force | Out-Null
+          Copy-Item ./tests/Workbench.Testing.SourceAcceptance/obj/Release/net10.0-windows10.0.19041.0/ref/Workbench.Testing.SourceAcceptance.dll ./artifacts/testing-source-package-build/reference/
+          ./tests/scripts/TestingManagedPayloadFull.Tests.ps1 -BuildDirectory ./artifacts/testing-source-package-build -HostDirectory ./.host/acceptance-host/artifacts/native/app -PluginCommit ((git rev-parse HEAD).Trim()) -HostCommit '9d7821bddba17fd3f40958f708d1ceee2c770505'
+      - name: Run four isolated synthetic Windows phases
+        shell: pwsh
+        run: ./scripts/source-acceptance-cross-probe.ps1
+      - uses: actions/upload-artifact@v7.0.2
+        if: always()
+        with:
+          name: testing-cross-source-windows-evidence
+          path: |
+            artifacts/host-sdk/manifest.json
+            artifacts/native/source-acceptance-probes/
+            artifacts/native/source-acceptance-fixture/provenance.json
+            artifacts/native/source-paired-production/provenance.json
+          if-no-files-found: error
+          retention-days: 7
   native-windows:
     runs-on: windows-2025
     timeout-minutes: 30
