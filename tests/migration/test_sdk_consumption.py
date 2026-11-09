@@ -2,6 +2,8 @@ import hashlib
 import importlib.util
 import json
 from pathlib import Path
+import shutil
+import subprocess
 import tempfile
 import unittest
 from unittest.mock import patch
@@ -17,7 +19,7 @@ class SdkConsumptionTests(unittest.TestCase):
     def fixture(self, root):
         (root / 'eng').mkdir()
         source = '1' * 40
-        (root / 'eng/host-sdk.lock.json').write_text(json.dumps({'sourceCommit': source}))
+        (root / 'eng/host-sdk.lock.json').write_text(json.dumps({'sourceCommit': source, 'sdkVersion': '0.4.0'}))
         prepared = root / 'artifacts/host-sdk/packages'
         prepared.mkdir(parents=True)
         cache = root / 'artifacts/nuget-packages'
@@ -95,6 +97,26 @@ class SdkConsumptionTests(unittest.TestCase):
                 assets.write_text(json.dumps(data))
             with patch('os.path.normcase', side_effect=lambda path: str(path).casefold()):
                 audit.verify(root)
+
+    @unittest.skipUnless(shutil.which('pwsh'), 'PowerShell is required for the SDK provenance integration test')
+    def test_provenance_function_returns_one_sdk_manifest(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            self.fixture(root)
+            manifest = root / 'artifacts/host-sdk/manifest.json'
+            data = json.loads(manifest.read_text())
+            data['referenceOnly'] = False
+            manifest.write_text(json.dumps(data))
+            (root / 'scripts').mkdir()
+            for name in ['TestingPluginDelivery.psm1', 'verify-sdk-consumption.py']:
+                shutil.copyfile(ROOT / 'scripts' / name, root / 'scripts' / name)
+            module_path = str(root / 'scripts/TestingPluginDelivery.psm1').replace("'", "''")
+            command = ("$ErrorActionPreference = 'Stop'; Import-Module -Name '" + module_path + "' -Force; "
+                       "$items = @(& (Get-Module TestingPluginDelivery) { Get-TestingSdkIdentity }); "
+                       "if ($items.Count -ne 1 -or $items[0] -isnot [System.Collections.IDictionary] "
+                       "-or $items[0]['sourceCommit'] -cne '" + '1' * 40 + "') { throw 'Expected exactly one SDK manifest.' }")
+            result = subprocess.run(['pwsh', '-NoProfile', '-Command', command], text=True, capture_output=True)
+            self.assertEqual(0, result.returncode, result.stdout + result.stderr)
 
 
 if __name__ == '__main__':

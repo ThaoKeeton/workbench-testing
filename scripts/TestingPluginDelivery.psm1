@@ -93,7 +93,7 @@ function Get-TestingSdkIdentity {
     }
     $python = (Get-Command python3, python -ErrorAction SilentlyContinue | Select-Object -First 1).Source
     if (-not $python) { throw 'TestingSdkConsumptionAuditRequiresPython' }
-    & $python (Join-Path $PSScriptRoot 'verify-sdk-consumption.py')
+    & $python (Join-Path $PSScriptRoot 'verify-sdk-consumption.py') | Out-Host
     if ($LASTEXITCODE -ne 0) { throw 'TestingSdkConsumptionMismatch' }
     return $manifest
 }
