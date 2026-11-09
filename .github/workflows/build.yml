@@ -135,6 +135,9 @@ jobs:
           ./scripts/package-testing-source-fixture.ps1
           ./tests/scripts/TestingSourceFixtureDelivery.Tests.ps1 -Directory ./artifacts/native/source-acceptance-fixture -ProductionDirectory ./artifacts/native/source-paired-production
           ./tests/scripts/ManagedSourceFixtureClosure.Tests.ps1 -BuildDirectory ./artifacts/testing-source-package-build -HostDirectory ./.host/project-workbench/artifacts/native/app -PluginCommit ((git rev-parse HEAD).Trim()) -HostCommit '655d7b6496067daad7c5e4cefb1f1da1b8379536'
+          New-Item ./artifacts/testing-source-package-build/reference -ItemType Directory -Force | Out-Null
+          Copy-Item ./tests/Workbench.Testing.SourceAcceptance/obj/Release/net10.0-windows10.0.19041.0/ref/Workbench.Testing.SourceAcceptance.dll ./artifacts/testing-source-package-build/reference/
+          ./tests/scripts/TestingManagedPayloadFull.Tests.ps1 -BuildDirectory ./artifacts/testing-source-package-build -HostDirectory ./.host/project-workbench/artifacts/native/app -PluginCommit ((git rev-parse HEAD).Trim()) -HostCommit '655d7b6496067daad7c5e4cefb1f1da1b8379536'
           dotnet run --project tests/Workbench.Testing.PackageProbe -c Release -- ./artifacts/native/source-acceptance-fixture/workbench-testing-source-acceptance-0.2.0.zip --profile SourceAcceptance --report ./artifacts/native/source-fixture-probes/package-install.json
           if ($LASTEXITCODE -ne 0) { throw 'Host package-store install refused the source fixture ZIP.' }
       - name: Native host-panel and process restore using exact migrated ZIP
