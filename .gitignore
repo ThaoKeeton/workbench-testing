@@ -1,0 +1,7 @@
+**/bin/
+**/obj/
+artifacts/
+.host/
+TestResults/
+__pycache__/
+*.user

@@ -1,0 +1,11 @@
+{
+  "schemaVersion": 1,
+  "documentId": "synthetic.requirements.task-form.v1",
+  "title": "Synthetic local task form rules",
+  "requirements": [
+    {"id":"task-positive","title":"Create a task 🧪\r\n\t多语言","description":"Deliberate synthetic positive scenario.","acceptanceCriteria":["Saving a nonempty title shows Saved and creates one task."],"virtualScenario":"TaskFormPositive"},
+    {"id":"task-empty","title":"Reject an empty title","description":"Deliberate synthetic empty-title scenario.","acceptanceCriteria":["Saving an empty title shows Title required and creates no task."],"virtualScenario":"TaskFormEmptyTitle"},
+    {"id":"task-deliberate-failure","title":"DELIBERATE ASSERTION FAILURE example","description":"The save succeeds; the template deliberately expects an incorrect toast.","acceptanceCriteria":["Demonstrate an actual assertion failure after a successful save."],"virtualScenario":"TaskFormAssertionFailure"},
+    {"id":"manual-accessibility","title":"Manual review criterion","description":"Review the proposed requirement manually.","acceptanceCriteria":["An assessor evaluates the wording and accessibility intent."],"virtualScenario":null}
+  ]
+}

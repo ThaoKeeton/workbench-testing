@@ -1,0 +1,170 @@
+name: Testing plugin build and verification
+on:
+  pull_request:
+  push:
+  workflow_dispatch:
+permissions:
+  contents: read
+env:
+  WORKBENCH_DISABLE_REAL_SERVICES: 'true'
+  DOTNET_CLI_TELEMETRY_OPTOUT: '1'
+  NUGET_PACKAGES: ${{ github.workspace }}/artifacts/nuget-packages
+  # This workflow supplies no API keys or webhook URLs. Source tests inject in-memory HTTP.
+jobs:
+  business-linux:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v7.0.1
+      - uses: actions/checkout@v7.0.1
+        with:
+          repository: ThaoKeeton/project-workbench
+          ref: 655d7b6496067daad7c5e4cefb1f1da1b8379536
+          path: .host/project-workbench
+          persist-credentials: false
+      - uses: actions/setup-dotnet@v6.1.0
+        with:
+          global-json-file: global.json
+      - name: Verify PowerShell runtime
+        shell: pwsh
+        run: ./scripts/assert-powershell-runtime.ps1
+      - name: Verify pinned host and build explicit reference SDK packages
+        run: python3 scripts/prepare-host-sdk.py --reference-only
+      - name: Repository migration contract regressions
+        run: python3 -m unittest discover -s tests/migration -v
+      - name: Business tests with pinned real host fixture
+        run: dotnet test Workbench.Testing.Core.slnx -c Release --nologo --logger "trx;LogFileName=testing-linux.trx" --results-directory artifacts/tests
+      - name: Packaging and synthetic process report guards
+        shell: pwsh
+        run: |
+          ./tests/scripts/TestingPluginPackage.Tests.ps1 -HelperGuardsOnly
+          ./tests/scripts/ManagedPayloadAudit.Tests.ps1
+          ./tests/scripts/TestingArchiveStructure.Tests.ps1
+          ./tests/scripts/TestingSourceFixtureStructure.Tests.ps1
+          ./tests/scripts/TestingPluginProbe.Tests.ps1
+          ./tests/scripts/SourceAcceptanceProbe.Tests.ps1
+          ./tests/scripts/OwnedLabBuild.Tests.ps1 -Mode ToolchainContract
+          ./tests/scripts/OwnedLabProbeStaging.Tests.ps1
+          ./tests/scripts/OwnedLabProbeOutput.Tests.ps1
+      - name: Explicit plugin and probe reference compilation
+        shell: pwsh
+        run: |
+          dotnet build Workbench.Testing.slnx -c Release --nologo -p:OwnedLabReferenceOnly=true -p:UseWinUI=false -p:AppxGeneratePriEnabled=false -p:WindowsAppSDKSelfContained=false
+          if ($LASTEXITCODE -ne 0) { throw 'Reference build failed.' }
+          python3 scripts/verify-sdk-consumption.py
+          if ($LASTEXITCODE -ne 0) { throw 'SDK consumption audit failed.' }
+          dotnet tests/Workbench.OwnedLab.WindowsProbe/bin/Release/net10.0-windows10.0.19041.0/Workbench.OwnedLab.WindowsProbe.dll --reference-only-check
+          if ($LASTEXITCODE -ne 0) { throw 'Unavailable descriptor refusal failed.' }
+          dotnet tests/Workbench.OwnedLab.WindowsProbe/bin/Release/net10.0-windows10.0.19041.0/Workbench.OwnedLab.WindowsProbe.dll --scenario-policy-check
+          if ($LASTEXITCODE -ne 0) { throw 'Scenario policy checks failed.' }
+          ./scripts/package-testing-plugin.ps1 -ReferenceOnly -OutputDirectory ./artifacts/reference-must-not-exist
+          if (Test-Path ./artifacts/reference-must-not-exist) { throw 'Reference-only build created a native delivery.' }
+          ./scripts/package-testing-source-fixture.ps1 -ReferenceOnly -OutputDirectory ./artifacts/source-reference-must-not-exist
+          if (Test-Path ./artifacts/source-reference-must-not-exist) { throw 'Reference-only source fixture created a native delivery.' }
+      - uses: actions/upload-artifact@v7.0.2
+        if: always()
+        with:
+          name: testing-linux-evidence
+          path: |
+            artifacts/tests/
+            artifacts/host-sdk/manifest.json
+          if-no-files-found: error
+          retention-days: 7
+  native-windows:
+    runs-on: windows-2025
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v7.0.1
+      - uses: actions/checkout@v7.0.1
+        with:
+          repository: ThaoKeeton/project-workbench
+          ref: 655d7b6496067daad7c5e4cefb1f1da1b8379536
+          path: .host/project-workbench
+          persist-credentials: false
+      - uses: actions/setup-dotnet@v6.1.0
+        with:
+          global-json-file: global.json
+      - name: Verify PowerShell runtime
+        shell: pwsh
+        run: ./scripts/assert-powershell-runtime.ps1
+      - name: Verify SDK source and build native SDK packages
+        run: python scripts/prepare-host-sdk.py
+      - name: Check SDK consumption before long Windows tests
+        shell: pwsh
+        run: |
+          dotnet restore plugins/Workbench.Testing/Workbench.Testing.csproj --nologo
+          if ($LASTEXITCODE -ne 0) { throw 'Testing plugin restore failed.' }
+          python scripts/verify-sdk-consumption.py
+          if ($LASTEXITCODE -ne 0) { throw 'SDK consumption audit failed.' }
+      - name: Repository and packaging regressions
+        shell: pwsh
+        run: |
+          python -m unittest discover -s tests/migration -v
+          if ($LASTEXITCODE -ne 0) { throw 'Repository migration regressions failed.' }
+          ./tests/scripts/TestingPluginPackage.Tests.ps1 -HelperGuardsOnly
+          ./tests/scripts/ManagedPayloadAudit.Tests.ps1
+          ./tests/scripts/TestingArchiveStructure.Tests.ps1
+          ./tests/scripts/TestingSourceFixtureStructure.Tests.ps1
+          ./tests/scripts/TestingPluginProbe.Tests.ps1
+          ./tests/scripts/SourceAcceptanceProbe.Tests.ps1
+          ./tests/scripts/OwnedLabBuild.Tests.ps1 -Mode ToolchainContract
+          ./tests/scripts/OwnedLabProbeStaging.Tests.ps1
+          ./tests/scripts/OwnedLabProbeOutput.Tests.ps1
+      - name: Business tests on Windows
+        run: dotnet test Workbench.Testing.Core.slnx -c Release --nologo --logger "trx;LogFileName=testing-windows.trx" --results-directory artifacts/tests
+      - name: Publish pinned host fixture only
+        shell: pwsh
+        run: |
+          dotnet publish .host/project-workbench/src/Workbench.App/Workbench.App.csproj -c Release -r win-x64 --self-contained true -o .host/project-workbench/artifacts/native/app -p:SourceRevisionId=655d7b6496067daad7c5e4cefb1f1da1b8379536
+          if ($LASTEXITCODE -ne 0) { throw 'Pinned host fixture publish failed.' }
+          if (-not (Test-Path .host/project-workbench/artifacts/native/app/Workbench.App.pri)) { throw 'Pinned host PRI missing.' }
+      - name: Build independently owned native helper and plugin ZIP
+        id: package
+        shell: pwsh
+        run: |
+          dotnet build plugins/Workbench.TestCases.Sample -c Release --nologo
+          if ($LASTEXITCODE -ne 0) { throw 'Test-cases sample native build failed.' }
+          ./scripts/package-testing-plugin.ps1
+          ./tests/scripts/TestingPluginPackage.Tests.ps1 -Directory ./artifacts/native/testing-plugin -RequireCurrentSource
+          ./tests/scripts/ManagedPayloadClosure.Tests.ps1 -BuildDirectory ./artifacts/testing-package-build -HostDirectory ./.host/project-workbench/artifacts/native/app -PluginCommit ((git rev-parse HEAD).Trim()) -HostCommit '655d7b6496067daad7c5e4cefb1f1da1b8379536'
+          dotnet run --project tests/Workbench.Testing.PackageProbe -c Release -- ./artifacts/native/testing-plugin/workbench-testing-plugin-0.2.0.zip
+          if ($LASTEXITCODE -ne 0) { throw 'Real host package-store install refused the independent ZIP.' }
+      - name: Build and verify paired synthetic source fixture
+        shell: pwsh
+        run: |
+          ./scripts/package-testing-source-fixture.ps1
+          ./tests/scripts/TestingSourceFixtureDelivery.Tests.ps1 -Directory ./artifacts/native/source-acceptance-fixture -ProductionDirectory ./artifacts/native/source-paired-production
+          ./tests/scripts/ManagedSourceFixtureClosure.Tests.ps1 -BuildDirectory ./artifacts/testing-source-package-build -HostDirectory ./.host/project-workbench/artifacts/native/app -PluginCommit ((git rev-parse HEAD).Trim()) -HostCommit '655d7b6496067daad7c5e4cefb1f1da1b8379536'
+          New-Item ./artifacts/testing-source-package-build/reference -ItemType Directory -Force | Out-Null
+          Copy-Item ./tests/Workbench.Testing.SourceAcceptance/obj/Release/net10.0-windows10.0.19041.0/ref/Workbench.Testing.SourceAcceptance.dll ./artifacts/testing-source-package-build/reference/
+          ./tests/scripts/TestingManagedPayloadFull.Tests.ps1 -BuildDirectory ./artifacts/testing-source-package-build -HostDirectory ./.host/project-workbench/artifacts/native/app -PluginCommit ((git rev-parse HEAD).Trim()) -HostCommit '655d7b6496067daad7c5e4cefb1f1da1b8379536'
+          dotnet run --project tests/Workbench.Testing.PackageProbe -c Release -- ./artifacts/native/source-acceptance-fixture/workbench-testing-source-acceptance-0.2.0.zip --profile SourceAcceptance --report ./artifacts/native/source-fixture-probes/package-install.json
+          if ($LASTEXITCODE -ne 0) { throw 'Host package-store install refused the source fixture ZIP.' }
+      - name: Native host-panel and process restore using exact migrated ZIP
+        shell: pwsh
+        run: |
+          New-Item .host/project-workbench/artifacts/native/testing-plugin -ItemType Directory -Force | Out-Null
+          Copy-Item ./artifacts/native/testing-plugin/workbench-testing-plugin-0.2.0.zip .host/project-workbench/artifacts/native/testing-plugin/
+          ./scripts/testing-plugin-probe.ps1
+      - name: Native owned target UIA and failure retirement
+        shell: pwsh
+        run: ./scripts/owned-lab-probe.ps1 -DeliveryDirectory ./artifacts/native/testing-plugin
+      - uses: actions/upload-artifact@v7.0.2
+        if: always()
+        with:
+          name: testing-windows-evidence
+          path: |
+            artifacts/tests/
+            artifacts/host-sdk/manifest.json
+            artifacts/native/testing-probes/
+            artifacts/native/owned-lab-probes/
+            artifacts/native/source-fixture-probes/
+          if-no-files-found: error
+          retention-days: 7
+      - uses: actions/upload-artifact@v7.0.2
+        if: success()
+        with:
+          name: workbench-testing-plugin-0.2.0
+          path: artifacts/native/testing-plugin/
+          if-no-files-found: error
+          retention-days: 7

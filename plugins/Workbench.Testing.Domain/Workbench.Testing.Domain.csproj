@@ -1,0 +1,14 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <Version>0.2.0</Version>
+    <AssemblyVersion>1.0.0.0</AssemblyVersion>
+    <FileVersion>0.2.0.0</FileVersion>
+    <IsPublishable>false</IsPublishable>
+  </PropertyGroup>
+  <ItemGroup>
+    <InternalsVisibleTo Include="Workbench.Core.Tests" />
+    <InternalsVisibleTo Include="Workbench.Testing" />
+    <PackageReference Include="Workbench.Sdk" Version="[0.4.0]" />
+    <EmbeddedResource Include="Fixtures/*.json" />
+  </ItemGroup>
+</Project>

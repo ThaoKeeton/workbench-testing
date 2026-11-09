@@ -1,0 +1,7 @@
+{
+  "sourceRepository": "https://github.com/ThaoKeeton/project-workbench",
+  "sourceCommit": "b1a3e9c9963c2d75798a6068f99a6270d81bd074",
+  "sourcePath": "scripts/TestingManagedPayloadAudit.cs",
+  "sourceSha256": "673efdaece5797bd598947c659db130fa9dd5cc173b6e591a7b7e842595867ee",
+  "adaptation": "Separate plugin and pinned host commits; validate SDK NuGet package assets against host SDK project bindings."
+}

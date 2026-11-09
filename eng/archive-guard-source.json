@@ -1,0 +1,9 @@
+{
+  "sourceRepository": "https://github.com/ThaoKeeton/project-workbench",
+  "sourceCommit": "b1a3e9c9963c2d75798a6068f99a6270d81bd074",
+  "files": [
+    { "path": "scripts/TestingPluginDelivery.psm1", "sha256": "b23747d3d31552ac5a719e4ab2ea9d016896939a99a958d06525f25ae1e5ca23" },
+    { "path": "tests/scripts/TestingPluginPackage.Tests.ps1", "sha256": "c7cd8b84714c4648291dc42490584ca94f9235aa47e0ff21f65ebde8c79eee0a" }
+  ],
+  "adaptation": "Production archive and provenance guards for the independent testing repository; SourceAcceptance profile remains separate work."
+}

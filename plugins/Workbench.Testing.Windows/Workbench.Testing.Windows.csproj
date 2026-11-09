@@ -1,0 +1,22 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net10.0-windows10.0.19041.0</TargetFramework>
+    <EnableWindowsTargeting>true</EnableWindowsTargeting>
+    <PlatformTarget>x64</PlatformTarget>
+    <Version>0.2.0</Version>
+    <AssemblyVersion>1.0.0.0</AssemblyVersion>
+    <FileVersion>0.2.0.0</FileVersion>
+    <IsPublishable>false</IsPublishable>
+    <DefineConstants Condition="'$(OwnedLabReferenceOnly)' == 'true'">$(DefineConstants);OWNED_LAB_REFERENCE_ONLY</DefineConstants>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="../Workbench.Testing.Domain/Workbench.Testing.Domain.csproj" />
+    <InternalsVisibleTo Include="Workbench.OwnedLab.WindowsProbe" />
+    <Compile Include="$(OwnedLabDescriptorPath)" Condition="'$(OwnedLabReferenceOnly)' != 'true' And Exists('$(OwnedLabDescriptorPath)')" />
+    <EmbeddedResource Include="$(OwnedLabDescriptorJsonPath)" LogicalName="Workbench.OwnedLab.Descriptor.json" Condition="'$(OwnedLabReferenceOnly)' != 'true' And Exists('$(OwnedLabDescriptorJsonPath)')" />
+  </ItemGroup>
+  <Target Name="RequireOwnedHelperDescriptor" BeforeTargets="CoreCompile" Condition="'$(OwnedLabReferenceOnly)' != 'true'">
+    <Error Condition="!Exists('$(OwnedLabDescriptorPath)')" Text="UnavailableHelper: build the actual MSVC owned helper first and supply OwnedLabDescriptorPath; reference compilation requires explicit OwnedLabReferenceOnly=true." />
+    <Error Condition="!Exists('$(OwnedLabDescriptorJsonPath)')" Text="UnavailableHelper: verified native descriptor resource is required." />
+  </Target>
+</Project>

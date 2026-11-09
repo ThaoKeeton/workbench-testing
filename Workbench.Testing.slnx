@@ -1,0 +1,10 @@
+<Solution>
+  <Project Path="plugins/Workbench.Testing/Workbench.Testing.csproj" />
+  <Project Path="plugins/Workbench.Testing.Domain/Workbench.Testing.Domain.csproj" />
+  <Project Path="plugins/Workbench.Testing.Windows/Workbench.Testing.Windows.csproj" />
+  <Project Path="plugins/Workbench.TestCases.Sample/Workbench.TestCases.Sample.csproj" />
+  <Project Path="tests/Workbench.Testing.Tests/Workbench.Testing.Tests.csproj" />
+  <Project Path="tests/Workbench.Testing.PackageProbe/Workbench.Testing.PackageProbe.csproj" />
+  <Project Path="tests/Workbench.OwnedLab.WindowsProbe/Workbench.OwnedLab.WindowsProbe.csproj" />
+  <Project Path="tests/Workbench.Testing.SourceAcceptance/Workbench.Testing.SourceAcceptance.csproj" />
+</Solution>
