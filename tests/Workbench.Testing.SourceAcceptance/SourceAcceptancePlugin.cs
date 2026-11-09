@@ -25,6 +25,7 @@ public sealed class SourceAcceptancePlugin : IWorkbenchPlugin
             var inner = new TestingPlugin(new(new(figma), new(ai)));
             _ownership = new(ledger, figma, ai, inner.StopAsync);
             _lifetime = testing.Lifetime.Register(ledger.SealCommands);
+            await SourceAcceptanceReleaseBridge.InitializeAsync(testing, ledger, cancellationToken).ConfigureAwait(false);
             await inner.InitializeAsync(context, cancellationToken).ConfigureAwait(false);
             SourceAcceptanceProtocol.Register(testing, ledger, () => inner.Lifecycle.ReadAdmission().ActivityStarts);
         }

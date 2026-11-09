@@ -7,6 +7,7 @@
 - 本仓：`Workbench.Testing`、`Workbench.Testing.Domain`、`Workbench.Testing.Windows`、原生 `Workbench.OwnedLab`、测试用例示例、业务测试与验收夹具、独立包和来源核验。
 - 宿主 `project-workbench`：SDK、Core 测试服务和存储实现、宿主 UI、宿主契约/兼容性测试。它们未复制进本仓。
 - 兼容基线：宿主提交 `655d7b6496067daad7c5e4cefb1f1da1b8379536`，SDK `0.4.0`，.NET SDK `10.0.403`，Windows App SDK `1.8.260921001`。每个迁入文件的原路径、长度及 SHA256 位于 `eng/migration-source.json`；SDK 源码锁定位于 `eng/host-sdk.lock.json`。
+- 后续补入宿主 `b1a3e9c9963c2d75798a6068f99a6270d81bd074` 的源码验收释放夹具与业务回归，来源文件和哈希记录在 `eng/source-acceptance-supplement.json`；这不改变宿主 SDK 的固定基线。完整托管依赖审计与新版原生源码验收仍待迁移和验证。
 
 宿主原文件暂时保留，待独立分支 CI 和消费端切换验证后再单独删除。目录迁入不代表 Windows 原生验收已通过。迁移没有创建新的业务能力，也没有把宿主全部测试搬走。
 

@@ -25,6 +25,8 @@ internal sealed class SourceAcceptanceOwnership(SourceAcceptanceScenarioLedger l
         ExceptionDispatchInfo? failure = null;
         try { await stopInner(CancellationToken.None).ConfigureAwait(false); }
         catch (Exception error) { failure = ExceptionDispatchInfo.Capture(error); }
+        try { await ledger.JoinReleaseMonitorsAsync().ConfigureAwait(false); }
+        catch (Exception error) { failure ??= ExceptionDispatchInfo.Capture(error); }
         try { figma.Dispose(); }
         catch (Exception error) { failure ??= ExceptionDispatchInfo.Capture(error); }
         try { ai.Dispose(); }
