@@ -7,6 +7,7 @@ import os
 from pathlib import Path
 import shutil
 import subprocess
+import zipfile
 
 ROOT = Path(__file__).resolve().parents[1]
 LOCK = ROOT / 'eng/host-sdk.lock.json'
@@ -50,6 +51,15 @@ def main():
             raise ValueError('SdkOutputLinkRefused')
         shutil.rmtree(output)
     packages.mkdir(parents=True)
+    cache = ROOT / 'artifacts/nuget-packages'
+    cache.mkdir(parents=True, exist_ok=True)
+    for name in ['workbench.sdk', 'workbench.winui.sdk']:
+        identity = cache / name
+        if identity.is_symlink():
+            raise ValueError('SdkCacheLinkRefused')
+        if identity.exists():
+            shutil.rmtree(identity)
+    environment = {**os.environ, 'NUGET_PACKAGES': str(cache)}
     for record in lock['sources']:
         destination = source / record['path']
         destination.parent.mkdir(parents=True, exist_ok=True)
@@ -58,7 +68,7 @@ def main():
         command = ['dotnet', 'pack', str(source / 'src' / name / (name + '.csproj')), '-c', 'Release', '--nologo', '-o', str(packages), '-p:ContinuousIntegrationBuild=true', '-p:SourceRevisionId=' + lock['sourceCommit'], '-p:PathMap=' + str(source) + '=/_/']
         if args.reference_only:
             command += ['-p:UseWinUI=false', '-p:AppxGeneratePriEnabled=false', '-p:IncludeProjectPriFile=false', '-p:WindowsAppSDKSelfContained=false']
-        subprocess.run(command, cwd=ROOT, check=True)
+        subprocess.run(command, cwd=ROOT, env=environment, check=True)
     records = [{'path': 'packages/' + p.name, 'length': p.stat().st_size, 'sha256': sha256(p)} for p in sorted(packages.glob('*.nupkg'))]
     if len(records) != 2:
         raise ValueError('ExactlyTwoHostSdkPackagesRequired')

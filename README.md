@@ -19,11 +19,11 @@ python scripts/prepare-host-sdk.py --host-root /absolute/path/to/project-workben
 dotnet test Workbench.Testing.Core.slnx -c Release -p:HostSourceRoot=/absolute/path/to/project-workbench
 ```
 
-脚本先核对宿主 HEAD 和全部 SDK 源文件 SHA256，再从允许列表生成两个本地 NuGet 包。插件使用精确 `0.4.0` 包引用，NuGet 源映射禁止从公共源替换同名 SDK。生成的包哈希写入 `artifacts/host-sdk/manifest.json`。Linux 必须显式 `--reference-only`，其输出不能当作 Windows 交付。Core 仅用于业务测试夹具；为兼容固定宿主的测试可见性，测试程序集保留历史名称 `Workbench.Core.Tests`，但本仓不运行宿主契约测试。
+脚本先核对宿主 HEAD 和全部 SDK 源文件 SHA256，再从允许列表生成两个本地 NuGet 包。插件使用精确 `0.4.0` 包引用，NuGet 源映射禁止从公共源替换同名 SDK。每次准备 SDK 都清除仓库私有缓存中的旧 SDK 身份，构建使用固定 `artifacts/nuget-packages`，打包前逐一核对实际消费的包和 DLL 字节。生成的包哈希写入 `artifacts/host-sdk/manifest.json`。Linux 必须显式 `--reference-only`，其输出不能当作 Windows 交付。Core 仅用于业务测试夹具；为兼容固定宿主的测试可见性，测试程序集保留历史名称 `Workbench.Core.Tests`，但本仓不运行宿主契约测试。
 
 ## Windows 独立包
 
-需要 Windows x64、.NET 10 SDK、PowerShell 7、MSVC x64 C++ 工具和 Windows SDK。在默认 `.host` checkout 布局下：
+需要 Windows x64、.NET 10 SDK、PowerShell 7.6+（运行在 .NET 10+）、MSVC x64 C++ 工具和 Windows SDK。在默认 `.host` checkout 布局下：
 
 ```powershell
 python scripts/prepare-host-sdk.py

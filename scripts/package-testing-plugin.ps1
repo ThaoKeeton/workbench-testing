@@ -3,6 +3,7 @@ param([ValidateSet('Debug','Release')][string]$Configuration = 'Release', [switc
       [string]$OutputDirectory = (Join-Path $PSScriptRoot '../artifacts/native/testing-plugin'))
 $ErrorActionPreference = 'Stop'
 Set-StrictMode -Version Latest
+& (Join-Path $PSScriptRoot 'assert-powershell-runtime.ps1')
 if (-not $IsWindows -and -not $ReferenceOnly) { throw 'Native testing packaging requires actual Windows MSVC; explicit -ReferenceOnly compiles without a ZIP.' }
 $repo = Split-Path $PSScriptRoot -Parent
 $project = Join-Path $repo 'plugins/Workbench.Testing/Workbench.Testing.csproj'

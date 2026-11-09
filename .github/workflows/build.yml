@@ -8,6 +8,7 @@ permissions:
 env:
   WORKBENCH_DISABLE_REAL_SERVICES: 'true'
   DOTNET_CLI_TELEMETRY_OPTOUT: '1'
+  NUGET_PACKAGES: ${{ github.workspace }}/artifacts/nuget-packages
   # This workflow supplies no API keys or webhook URLs. Source tests inject in-memory HTTP.
 jobs:
   business-linux:
@@ -24,6 +25,9 @@ jobs:
       - uses: actions/setup-dotnet@v6.1.0
         with:
           global-json-file: global.json
+      - name: Verify PowerShell runtime
+        shell: pwsh
+        run: ./scripts/assert-powershell-runtime.ps1
       - name: Verify pinned host and build explicit reference SDK packages
         run: python3 scripts/prepare-host-sdk.py --reference-only
       - name: Repository migration contract regressions
@@ -43,6 +47,8 @@ jobs:
         run: |
           dotnet build Workbench.Testing.slnx -c Release --nologo -p:OwnedLabReferenceOnly=true -p:UseWinUI=false -p:AppxGeneratePriEnabled=false -p:WindowsAppSDKSelfContained=false
           if ($LASTEXITCODE -ne 0) { throw 'Reference build failed.' }
+          python3 scripts/verify-sdk-consumption.py
+          if ($LASTEXITCODE -ne 0) { throw 'SDK consumption audit failed.' }
           dotnet tests/Workbench.OwnedLab.WindowsProbe/bin/Release/net10.0-windows10.0.19041.0/Workbench.OwnedLab.WindowsProbe.dll --reference-only-check
           if ($LASTEXITCODE -ne 0) { throw 'Unavailable descriptor refusal failed.' }
           dotnet tests/Workbench.OwnedLab.WindowsProbe/bin/Release/net10.0-windows10.0.19041.0/Workbench.OwnedLab.WindowsProbe.dll --scenario-policy-check
@@ -72,6 +78,9 @@ jobs:
       - uses: actions/setup-dotnet@v6.1.0
         with:
           global-json-file: global.json
+      - name: Verify PowerShell runtime
+        shell: pwsh
+        run: ./scripts/assert-powershell-runtime.ps1
       - name: Verify SDK source and build native SDK packages
         run: python scripts/prepare-host-sdk.py
       - name: Repository and packaging regressions
@@ -96,6 +105,8 @@ jobs:
         id: package
         shell: pwsh
         run: |
+          dotnet build plugins/Workbench.TestCases.Sample -c Release --nologo
+          if ($LASTEXITCODE -ne 0) { throw 'Test-cases sample native build failed.' }
           ./scripts/package-testing-plugin.ps1
           ./tests/scripts/TestingPluginPackage.Tests.ps1 -Directory ./artifacts/native/testing-plugin -RequireCurrentSource
           dotnet run --project tests/Workbench.Testing.PackageProbe -c Release -- ./artifacts/native/testing-plugin/workbench-testing-plugin-0.2.0.zip

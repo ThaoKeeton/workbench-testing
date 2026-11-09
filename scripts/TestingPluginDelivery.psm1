@@ -91,6 +91,10 @@ function Get-TestingSdkIdentity {
         $file = Get-Item -LiteralPath (Join-Path $root $record.path)
         if ($file.Length -ne $record.length -or (Get-FileHash $file.FullName -Algorithm SHA256).Hash.ToLowerInvariant() -cne $record.sha256) { throw 'TestingSdkPackageHashMismatch' }
     }
+    $python = (Get-Command python3, python -ErrorAction SilentlyContinue | Select-Object -First 1).Source
+    if (-not $python) { throw 'TestingSdkConsumptionAuditRequiresPython' }
+    & $python (Join-Path $PSScriptRoot 'verify-sdk-consumption.py')
+    if ($LASTEXITCODE -ne 0) { throw 'TestingSdkConsumptionMismatch' }
     return $manifest
 }
 function Get-TestingHostIdentity {
@@ -188,9 +192,9 @@ function New-TestingPluginDelivery {
         @"
 # Independent testing plugin 0.2.0
 
-Install workbench-testing-plugin-0.2.0.zip using the native host's package installation action. Requires host 0.4.0 or later; use the host and SDK artifacts from this same source/CI run. Trust in-process code deliberately: ALC is not a sandbox.
+Install workbench-testing-plugin-0.2.0.zip using the native host's package installation action. Requires host 0.4.0 or later; the separately recorded pinned host commit and SDK package hashes identify the compatibility baseline. Trust in-process code deliberately: ALC is not a sandbox.
 
-Source commit: $sourceCommit. Reference-only build: $([bool]$ReferenceOnly). Dirty source: $dirty. A Linux reference build does not prove native Windows execution or PRI deployment. Consult the same-run testing-plugin-probes artifact for actual Server process/window/lease evidence; Windows 11 human pickers/IME/DPI/accessibility remain deferred.
+Plugin source commit: $sourceCommit. Pinned host source commit: $($hostIdentity.sourceCommit). Reference-only build: $([bool]$ReferenceOnly). Dirty source: $dirty. A Linux reference build does not prove native Windows execution or PRI deployment. Consult the same-run testing-plugin-probes artifact for actual Server process/window/lease evidence; Windows 11 human pickers/IME/DPI/accessibility remain deferred.
 
 The exact eight-file ZIP contains entry, private portable domain, private Windows launcher, static-CRT x64 owned helper, entry deps, manifest and two explicitly synthetic JSON examples. The existing host controls run the SIMULATED virtual.task-form.v1 adapter. The owned Windows driver is proven separately by owned-lab-probes; its host panel is a later acceptance task. It operates only the repository-owned synthetic task form with actual UIA and target-window PrintWindow capture. No SDK/Core/WinUI/.NET/WinRT copies, credentials or business plugin payloads are included. Manual steps are never automatic passes. CSV exports add one apostrophe to every text cell; original project records remain exact.
 
