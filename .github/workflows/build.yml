@@ -40,6 +40,7 @@ jobs:
           ./tests/scripts/TestingPluginPackage.Tests.ps1 -HelperGuardsOnly
           ./tests/scripts/ManagedPayloadAudit.Tests.ps1
           ./tests/scripts/TestingPluginProbe.Tests.ps1
+          ./tests/scripts/SourceAcceptanceProbe.Tests.ps1
           ./tests/scripts/OwnedLabBuild.Tests.ps1 -Mode ToolchainContract
           ./tests/scripts/OwnedLabProbeStaging.Tests.ps1
           ./tests/scripts/OwnedLabProbeOutput.Tests.ps1
@@ -99,6 +100,7 @@ jobs:
           ./tests/scripts/TestingPluginPackage.Tests.ps1 -HelperGuardsOnly
           ./tests/scripts/ManagedPayloadAudit.Tests.ps1
           ./tests/scripts/TestingPluginProbe.Tests.ps1
+          ./tests/scripts/SourceAcceptanceProbe.Tests.ps1
           ./tests/scripts/OwnedLabBuild.Tests.ps1 -Mode ToolchainContract
           ./tests/scripts/OwnedLabProbeStaging.Tests.ps1
           ./tests/scripts/OwnedLabProbeOutput.Tests.ps1
