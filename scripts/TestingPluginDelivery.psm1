@@ -135,6 +135,11 @@ function Read-TestingOwnedDescriptor {
     try { return [Text.UTF8Encoding]::new($false,$true).GetString([WorkbenchTestingArchiveAudit]::Descriptor($Assembly)) | ConvertFrom-Json -AsHashtable }
     catch { throw 'TestingOwnedHelperDescriptorInvalid' }
 }
+function Assert-TestingManifest {
+    param([byte[]]$Bytes)
+    try { [WorkbenchTestingManagedAudit]::Manifest($Bytes, 'Production') }
+    catch { throw 'TestingManifestInvalid' }
+}
 function Assert-TestingOwnedSource {
     param([Collections.IDictionary]$Build, [Collections.IDictionary]$Descriptor)
     if ($Build['staticCrt'] -isnot [bool] -or -not $Build['staticCrt'] -or $Build['macro'] -cne '' -or $Build['sources'] -isnot [array]) { throw 'TestingOwnedHelperSourceInvalid' }
@@ -189,7 +194,7 @@ function New-TestingPluginDelivery {
         foreach ($name in @('Workbench.Testing.dll','Workbench.Testing.Domain.dll','Workbench.Testing.Windows.dll','Workbench.Testing.deps.json')) {
             $managedPayload[$name] = [IO.File]::ReadAllBytes((Join-Path $stage $name))
         }
-        [WorkbenchTestingManagedAudit]::Manifest([IO.File]::ReadAllBytes((Join-Path $stage 'plugin.json')), 'Production')
+        Assert-TestingManifest ([IO.File]::ReadAllBytes((Join-Path $stage 'plugin.json')))
         $managed = [WorkbenchTestingManagedAudit]::Audit($managedPayload, (Get-TestingHostAppDirectory), $sourceCommit, (Get-TestingPinnedHostCommit), 'Production') | ConvertFrom-Json -AsHashtable
         $zipName = 'workbench-testing-plugin-0.2.0.zip'
         $zip = Join-Path $OutputDirectory $zipName
@@ -258,7 +263,7 @@ function Test-TestingPluginDelivery {
             if ([WorkbenchTestingArchiveAudit]::Crc($actual) -ne $entry[0].Crc32) { throw 'TestingPayloadCrcMismatch' }
             if ($record[0].length -ne $actual.Length -or $record[0].sha256 -cne [Convert]::ToHexString([Security.Cryptography.SHA256]::HashData($actual)).ToLowerInvariant()) { throw 'TestingPayloadHashMismatch' }
             if ($name -cin @('Workbench.Testing.dll','Workbench.Testing.Domain.dll','Workbench.Testing.Windows.dll','Workbench.Testing.deps.json','Workbench.OwnedLab.exe')) { $nativePayload[$name] = $actual }
-            if ($name -ceq 'plugin.json') { [WorkbenchTestingManagedAudit]::Manifest($actual, 'Production') }
+            if ($name -ceq 'plugin.json') { Assert-TestingManifest $actual }
         }
     }
     finally { $zip.Dispose() }

@@ -18,6 +18,13 @@ $text = $utf8.GetString($manifest)
 $changed = $text | ConvertFrom-Json -AsHashtable
 $changed.id = 'com.example.other'
 Refuses { [WorkbenchTestingManagedAudit]::Manifest($utf8.GetBytes(($changed | ConvertTo-Json -Depth 8)), 'Production') } 'TestingManifestInvalid'
+$module = Get-Module TestingPluginDelivery
+try {
+    & $module { param($bytes) Assert-TestingManifest $bytes } $utf8.GetBytes(($changed | ConvertTo-Json -Depth 8))
+    throw 'The delivery manifest guard accepted an invalid ID.'
+} catch {
+    if ($_.Exception.Message -cne 'TestingManifestInvalid') { throw "Delivery guard exposed the wrong error: $($_.Exception.Message)" }
+}
 $duplicate = $text.Replace('"apiVersion": 1', '"apiVersion": 1, "apiVersion": 1')
 if ($duplicate -ceq $text) { throw 'Duplicate-field fixture was not constructed.' }
 Refuses { [WorkbenchTestingManagedAudit]::Manifest($utf8.GetBytes($duplicate), 'Production') } 'TestingManifestInvalid'
