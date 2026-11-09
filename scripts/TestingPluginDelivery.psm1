@@ -1,4 +1,5 @@
 Set-StrictMode -Version Latest
+if (-not ('WorkbenchTestingManagedAudit' -as [type])) { Add-Type -Path (Join-Path $PSScriptRoot 'TestingManagedPayloadAudit.cs') }
 $script:TestingPayload = @('Fixtures/figma.synthetic.json', 'Fixtures/requirements.synthetic.json', 'Workbench.Testing.deps.json', 'Workbench.Testing.dll', 'Workbench.Testing.Domain.dll', 'Workbench.Testing.Windows.dll', 'Workbench.OwnedLab.exe', 'plugin.json')
 if (-not ('WorkbenchTestingArchiveAudit' -as [type])) {
     Add-Type -TypeDefinition @'
@@ -184,10 +185,16 @@ function New-TestingPluginDelivery {
             $file = Get-Item -LiteralPath (Join-Path $stage $_)
             @{ path = $_; length = $file.Length; sha256 = (Get-FileHash -LiteralPath $file.FullName -Algorithm SHA256).Hash.ToLowerInvariant() }
         })
+        $managedPayload = @{}
+        foreach ($name in @('Workbench.Testing.dll','Workbench.Testing.Domain.dll','Workbench.Testing.Windows.dll','Workbench.Testing.deps.json')) {
+            $managedPayload[$name] = [IO.File]::ReadAllBytes((Join-Path $stage $name))
+        }
+        [WorkbenchTestingManagedAudit]::Manifest([IO.File]::ReadAllBytes((Join-Path $stage 'plugin.json')), 'Production')
+        $managed = [WorkbenchTestingManagedAudit]::Audit($managedPayload, (Get-TestingHostAppDirectory), $sourceCommit, (Get-TestingPinnedHostCommit), 'Production') | ConvertFrom-Json -AsHashtable
         $zipName = 'workbench-testing-plugin-0.2.0.zip'
         $zip = Join-Path $OutputDirectory $zipName
         [IO.Compression.ZipFile]::CreateFromDirectory($stage, $zip)
-        $metadata = @{ schemaVersion = 1; pluginId = 'com.projectworkbench.testing'; version = '0.2.0'; minimumHostVersion = '0.4.0'; sourceCommit = $sourceCommit; sourceTreeDirty = $dirty; referenceOnly = $false; helper = $helper; nativeBuild = $nativeBuild; host = $hostIdentity; sdk = $sdkIdentity; migratedFrom = (Get-Content (Join-Path $repo 'eng/migration-source.json') -Raw | ConvertFrom-Json -AsHashtable).sourceCommit; sourceFiles = $sourceFiles; payload = $payload; zip = @{ path = $zipName; length = (Get-Item $zip).Length; sha256 = (Get-FileHash $zip -Algorithm SHA256).Hash.ToLowerInvariant() }; createdUtc = [DateTimeOffset]::UtcNow.ToString('O') }
+        $metadata = @{ schemaVersion = 1; pluginId = 'com.projectworkbench.testing'; version = '0.2.0'; minimumHostVersion = '0.4.0'; sourceCommit = $sourceCommit; sourceTreeDirty = $dirty; referenceOnly = $false; helper = $helper; nativeBuild = $nativeBuild; host = $hostIdentity; sdk = $sdkIdentity; managed = $managed; migratedFrom = (Get-Content (Join-Path $repo 'eng/migration-source.json') -Raw | ConvertFrom-Json -AsHashtable).sourceCommit; sourceFiles = $sourceFiles; payload = $payload; zip = @{ path = $zipName; length = (Get-Item $zip).Length; sha256 = (Get-FileHash $zip -Algorithm SHA256).Hash.ToLowerInvariant() }; createdUtc = [DateTimeOffset]::UtcNow.ToString('O') }
         $metadata | ConvertTo-Json -Depth 20 | Set-Content (Join-Path $OutputDirectory 'provenance.json') -Encoding utf8
         @"
 # Independent testing plugin 0.2.0
@@ -250,11 +257,8 @@ function Test-TestingPluginDelivery {
             try { $bytes = [IO.MemoryStream]::new(); $stream.CopyTo($bytes); $actual = $bytes.ToArray(); $bytes.Dispose() } finally { $stream.Dispose() }
             if ([WorkbenchTestingArchiveAudit]::Crc($actual) -ne $entry[0].Crc32) { throw 'TestingPayloadCrcMismatch' }
             if ($record[0].length -ne $actual.Length -or $record[0].sha256 -cne [Convert]::ToHexString([Security.Cryptography.SHA256]::HashData($actual)).ToLowerInvariant()) { throw 'TestingPayloadHashMismatch' }
-            if ($name -cin @('Workbench.Testing.Windows.dll','Workbench.OwnedLab.exe')) { $nativePayload[$name] = $actual }
-            if ($name -ceq 'plugin.json') {
-                $manifest = [Text.Encoding]::UTF8.GetString($actual) | ConvertFrom-Json
-                if ($manifest.id -cne 'com.projectworkbench.testing' -or $manifest.version -cne '0.2.0' -or $manifest.minimumHostVersion -cne '0.4.0' -or $manifest.apiVersion -ne 1 -or $manifest.entryAssembly -cne 'Workbench.Testing.dll' -or $manifest.entryType -cne 'Workbench.Testing.TestingPlugin') { throw 'TestingManifestInvalid' }
-            }
+            if ($name -cin @('Workbench.Testing.dll','Workbench.Testing.Domain.dll','Workbench.Testing.Windows.dll','Workbench.Testing.deps.json','Workbench.OwnedLab.exe')) { $nativePayload[$name] = $actual }
+            if ($name -ceq 'plugin.json') { [WorkbenchTestingManagedAudit]::Manifest($actual, 'Production') }
         }
     }
     finally { $zip.Dispose() }
@@ -263,6 +267,14 @@ function Test-TestingPluginDelivery {
     if ($helper.SourceCommit -cne $metadata.sourceCommit) { throw 'TestingOwnedHelperSourceInvalid' }
     foreach ($key in $helper.Keys) { if ($metadata.helper[$key] -cne $helper[$key]) { throw 'TestingOwnedHelperDescriptorInvalid' } }
     Assert-TestingOwnedSource $metadata.nativeBuild $helper
+    $observedManaged = [WorkbenchTestingManagedAudit]::Audit($nativePayload, $AppDirectory, $metadata.sourceCommit, (Get-TestingPinnedHostCommit), 'Production')
+    if (-not $metadata.ContainsKey('managed')) { throw 'TestingManagedAuditMissing' }
+    $recordedDoc = [Text.Json.JsonDocument]::Parse(($metadata.managed | ConvertTo-Json -Depth 50 -Compress))
+    $observedDoc = [Text.Json.JsonDocument]::Parse($observedManaged)
+    try {
+        if (-not [Text.Json.JsonElement]::DeepEquals($recordedDoc.RootElement, $observedDoc.RootElement)) { throw 'TestingManagedAuditMismatch' }
+    }
+    finally { $recordedDoc.Dispose(); $observedDoc.Dispose() }
     if ($RequireCurrentSource) {
         Assert-TestingSourceIdentity -RecordedCommit $metadata.sourceCommit -RecordedDirty $metadata.sourceTreeDirty -CurrentCommit (& git -C $repo rev-parse HEAD).Trim() -CurrentDirty (@(& git -C $repo status --porcelain).Count -ne 0)
         Assert-TestingSourceRecords -Current @(Get-TestingSourceFiles $repo) -Recorded @($metadata.sourceFiles)
