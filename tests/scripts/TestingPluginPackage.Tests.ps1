@@ -25,6 +25,10 @@ if ($HelperGuardsOnly) {
     Refuses { New-TestingPluginDelivery -BuildDirectory $temp -OutputDirectory (Join-Path $temp 'delivery') -ReferenceOnly } 'TestingDeliveryReferenceOnly'
     Refuses { New-TestingPluginDelivery -BuildDirectory $temp -OutputDirectory (Join-Path $temp 'delivery') } 'TestingOwnedHelperMissing'
     if (Test-Path (Join-Path $temp 'delivery')) { throw 'Missing/reference helper created a production output.' }
+    $sources = @(& $module { param($root) Get-TestingSourceFiles $root } $repo)
+    $dotfile = @($sources | Where-Object path -CEQ '.gitattributes')
+    $dotfileHash = (Get-FileHash -LiteralPath (Join-Path $repo '.gitattributes') -Algorithm SHA256).Hash.ToLowerInvariant()
+    if ($dotfile.Count -ne 1 -or $dotfile[0].sha256 -cne $dotfileHash) { throw 'Tracked hidden source must be included with its actual hash.' }
     $records = @(& $module { param($root) Get-TestingSourceFiles $root } $repo | Where-Object path -CLike 'native/Workbench.OwnedLab/*' | Sort-Object path -CaseSensitive)
     $sourceText = ($records | ForEach-Object { "$($_.path) $($_.length) $($_.sha256)`n" }) -join ''
     $sourceText += "profile=Production`nmacro=`n"

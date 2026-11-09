@@ -1,6 +1,8 @@
 import importlib.util
+import hashlib
 import json
 from pathlib import Path
+import tempfile
 import unittest
 from unittest.mock import patch
 
@@ -31,6 +33,38 @@ class RepositoryContractTests(unittest.TestCase):
         with patch.object(prepare.subprocess, 'check_output', return_value='0' * 40 + '\n'):
             with self.assertRaisesRegex(ValueError, 'HostSdkSourceHashMismatch'):
                 prepare.verify_host(ROOT, {'sourceCommit': '0' * 40, 'sources': [{'path': 'global.json', 'sha256': '0' * 64}]})
+
+    def test_crlf_host_checkout_prepares_locked_lf_source(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary) / 'testing'
+            host = Path(temporary) / 'host'
+            (root / 'eng').mkdir(parents=True)
+            host.mkdir()
+            canonical = b'<Project>\n  <Version>0.4.0</Version>\n</Project>\n'
+            (host / 'Directory.Build.props').write_bytes(canonical.replace(b'\n', b'\r\n'))
+            lock = {'sourceCommit': '0' * 40, 'sources': [{'path': 'Directory.Build.props', 'sha256': hashlib.sha256(canonical).hexdigest()}]}
+            lock_path = root / 'eng/host-sdk.lock.json'
+            lock_path.write_text(json.dumps(lock))
+
+            def fake_pack(command, cwd, env, check):
+                output = Path(command[command.index('-o') + 1])
+                (output / (Path(command[2]).stem + '.nupkg')).write_bytes(b'fixture package')
+
+            with patch.object(prepare, 'ROOT', root), patch.object(prepare, 'LOCK', lock_path), \
+                 patch.object(prepare.subprocess, 'check_output', return_value='0' * 40 + '\n'), \
+                 patch.object(prepare.subprocess, 'run', side_effect=fake_pack), \
+                 patch('sys.argv', ['prepare-host-sdk', '--host-root', str(host), '--reference-only']):
+                prepare.main()
+            self.assertEqual(canonical, (root / 'artifacts/host-sdk/source/Directory.Build.props').read_bytes())
+
+    def test_crlf_host_checkout_with_changed_content_is_refused(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            host = Path(temporary)
+            (host / 'global.json').write_bytes(b'first\r\nchanged\r\n')
+            lock = {'sourceCommit': '0' * 40, 'sources': [{'path': 'global.json', 'sha256': hashlib.sha256(b'first\nsecond\n').hexdigest()}]}
+            with patch.object(prepare.subprocess, 'check_output', return_value='0' * 40 + '\n'):
+                with self.assertRaisesRegex(ValueError, 'HostSdkSourceHashMismatch'):
+                    prepare.verify_host(host, lock)
 
     def test_plugin_and_host_provenance_use_separate_commits(self):
         text = (ROOT / 'scripts/TestingPluginDelivery.psm1').read_text()

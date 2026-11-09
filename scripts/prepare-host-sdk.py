@@ -17,15 +17,30 @@ def sha256(path):
     return hashlib.sha256(Path(path).read_bytes()).hexdigest()
 
 
+def locked_source(host, record):
+    path = host / record['path']
+    if path.is_symlink():
+        raise ValueError('HostSdkSourceHashMismatch: ' + record['path'])
+    data = path.read_bytes()
+    if hashlib.sha256(data).hexdigest() == record['sha256']:
+        return data
+    # Git on Windows may convert every LF in a text checkout to CRLF. Accept
+    # only that exact reversible conversion of the locked bytes, and package
+    # the canonical LF bytes rather than the platform-specific checkout.
+    canonical = data.replace(b'\r\n', b'\n')
+    if (data == canonical.replace(b'\n', b'\r\n') and
+            hashlib.sha256(canonical).hexdigest() == record['sha256']):
+        return canonical
+    raise ValueError('HostSdkSourceHashMismatch: ' + record['path'])
+
+
 def verify_host(host, lock):
     host = Path(host).resolve()
     commit = subprocess.check_output(['git', '-C', str(host), 'rev-parse', 'HEAD'], text=True).strip()
     if commit != lock['sourceCommit']:
         raise ValueError('HostSourceCommitMismatch: expected ' + lock['sourceCommit'])
     for record in lock['sources']:
-        path = host / record['path']
-        if path.is_symlink() or sha256(path) != record['sha256']:
-            raise ValueError('HostSdkSourceHashMismatch: ' + record['path'])
+        locked_source(host, record)
     return host
 
 
@@ -63,7 +78,7 @@ def main():
     for record in lock['sources']:
         destination = source / record['path']
         destination.parent.mkdir(parents=True, exist_ok=True)
-        shutil.copyfile(host / record['path'], destination)
+        destination.write_bytes(locked_source(host, record))
     for name in ['Workbench.Sdk', 'Workbench.WinUI.Sdk']:
         command = ['dotnet', 'pack', str(source / 'src' / name / (name + '.csproj')), '-c', 'Release', '--nologo', '-o', str(packages), '-p:ContinuousIntegrationBuild=true', '-p:SourceRevisionId=' + lock['sourceCommit'], '-p:PathMap=' + str(source) + '=/_/']
         if args.reference_only:

@@ -66,7 +66,7 @@ function Get-TestingSourceFiles {
     $paths = @(& git -C $Repo ls-files --cached)
     if ($LASTEXITCODE -ne 0 -or $paths.Count -eq 0) { throw 'TestingSourceFileListUnavailable' }
     return @($paths | Sort-Object -Unique | ForEach-Object {
-        $file = Get-Item -LiteralPath (Join-Path $Repo $_)
+        $file = Get-Item -LiteralPath (Join-Path $Repo $_) -Force
         if (($file.Attributes -band [IO.FileAttributes]::ReparsePoint) -ne 0) { throw 'TestingSourceLinkRefused' }
         @{ path = $_; length = $file.Length; sha256 = (Get-FileHash -LiteralPath $file.FullName -Algorithm SHA256).Hash.ToLowerInvariant() }
     })
