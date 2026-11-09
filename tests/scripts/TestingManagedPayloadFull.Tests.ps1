@@ -207,7 +207,15 @@ foreach ($case in $runtimeTargetCases) {
     if ($case.name -ceq 'targets-array') { $runtimeTargets = @('unexpected') }
     $changed = @{}; foreach ($key in $payload.Keys) { $changed[$key] = $payload[$key] }
     $deps = [Text.Encoding]::UTF8.GetString($payload['Workbench.Testing.SourceAcceptance.deps.json']) | ConvertFrom-Json -AsHashtable
-    $deps.targets['.NETCoreApp,Version=v10.0']['Microsoft.WindowsAppSDK.WinUI/1.8.260803003'].runtimeTargets = $runtimeTargets
+    $target = $deps.targets['.NETCoreApp,Version=v10.0']
+    $libraries = @($target.GetEnumerator() | Where-Object {
+        $node = $_.Value
+        $node -is [Collections.IDictionary] -and $node.Contains('runtime') -and $node['runtime'] -is [Collections.IDictionary] -and
+            @($node['runtime'].Keys | Where-Object { $_ -ceq 'Microsoft.WinUI.dll' -or $_.EndsWith('/Microsoft.WinUI.dll',[StringComparison]::Ordinal) }).Count -gt 0
+    })
+    if ($libraries.Count -ne 1) { throw 'TestingManagedWinUiLibraryNotUnique' }
+    $libraryName = $libraries[0].Key
+    $target[$libraryName]['runtimeTargets'] = $runtimeTargets
     $changed['Workbench.Testing.SourceAcceptance.deps.json'] = [Text.Encoding]::UTF8.GetBytes(($deps | ConvertTo-Json -Depth 32 -Compress))
     $peerDirectory = $HostDirectory
     if ($case.mirror) {
@@ -217,7 +225,9 @@ foreach ($case in $runtimeTargetCases) {
             Copy-Item -LiteralPath (Join-Path $HostDirectory "$name.dll") -Destination (Join-Path $peerDirectory "$name.dll")
         }
         $hostDeps = Get-Content -LiteralPath (Join-Path $HostDirectory 'Workbench.App.deps.json') -Raw | ConvertFrom-Json -AsHashtable
-        $hostDeps.targets['.NETCoreApp,Version=v10.0']['Microsoft.WindowsAppSDK.WinUI/1.8.260803003'].runtimeTargets = $runtimeTargets
+        $hostNodes = @($hostDeps.targets.Values | Where-Object { $_ -is [Collections.IDictionary] -and $_.Contains($libraryName) })
+        if ($hostNodes.Count -lt 1) { throw 'TestingManagedWinUiHostLibraryMissing' }
+        $hostNodes[0][$libraryName]['runtimeTargets'] = $runtimeTargets
         $hostDeps | ConvertTo-Json -Depth 32 | Set-Content -LiteralPath (Join-Path $peerDirectory 'Workbench.App.deps.json') -Encoding utf8
     }
     if ($case.ContainsKey('accepted') -and $case.accepted) {
