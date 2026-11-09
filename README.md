@@ -34,6 +34,8 @@ pwsh -File scripts/package-testing-plugin.ps1
 
 打包要求本仓工作树干净，并实际构建 MSVC helper。输出 `artifacts/native/testing-plugin/`，含内层 `workbench-testing-plugin-0.2.0.zip`、说明、`provenance.json` 与 `SHA256SUMS`。来源清单分别记录插件提交、宿主提交、SDK 包哈希、helper 身份和 ZIP/每个文件的 SHA256；八文件 ZIP 不包含 SDK、Core、WinUI、.NET 或用户数据。
 
+合成源码验收夹具可在 Windows 上通过 `pwsh -File scripts/package-testing-source-fixture.ps1` 单独构建。它同时从同一构建生成配对生产包和十文件夹具包，并核对七个公共文件；夹具只使用内存 HTTP，不是普通插件交付。现有固定宿主没有新版源码验收入口，包构建或安装不能证明跨仓原生源码验收已通过。
+
 公开 Actions 对独立分支 push、PR 和手动运行执行 Linux/Windows 业务测试、参考编译、实际 Windows 独立打包及受控原生探针。只有该提交的整个 Windows job 成功，才上传可安装包。失败时仍保留可用验证报告，不能把参考编译说成原生通过。
 
 ## 验证与安全边界

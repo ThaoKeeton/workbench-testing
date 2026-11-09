@@ -40,6 +40,7 @@ jobs:
           ./tests/scripts/TestingPluginPackage.Tests.ps1 -HelperGuardsOnly
           ./tests/scripts/ManagedPayloadAudit.Tests.ps1
           ./tests/scripts/TestingArchiveStructure.Tests.ps1
+          ./tests/scripts/TestingSourceFixtureStructure.Tests.ps1
           ./tests/scripts/TestingPluginProbe.Tests.ps1
           ./tests/scripts/SourceAcceptanceProbe.Tests.ps1
           ./tests/scripts/OwnedLabBuild.Tests.ps1 -Mode ToolchainContract
@@ -58,6 +59,8 @@ jobs:
           if ($LASTEXITCODE -ne 0) { throw 'Scenario policy checks failed.' }
           ./scripts/package-testing-plugin.ps1 -ReferenceOnly -OutputDirectory ./artifacts/reference-must-not-exist
           if (Test-Path ./artifacts/reference-must-not-exist) { throw 'Reference-only build created a native delivery.' }
+          ./scripts/package-testing-source-fixture.ps1 -ReferenceOnly -OutputDirectory ./artifacts/source-reference-must-not-exist
+          if (Test-Path ./artifacts/source-reference-must-not-exist) { throw 'Reference-only source fixture created a native delivery.' }
       - uses: actions/upload-artifact@v7.0.2
         if: always()
         with:
@@ -101,6 +104,7 @@ jobs:
           ./tests/scripts/TestingPluginPackage.Tests.ps1 -HelperGuardsOnly
           ./tests/scripts/ManagedPayloadAudit.Tests.ps1
           ./tests/scripts/TestingArchiveStructure.Tests.ps1
+          ./tests/scripts/TestingSourceFixtureStructure.Tests.ps1
           ./tests/scripts/TestingPluginProbe.Tests.ps1
           ./tests/scripts/SourceAcceptanceProbe.Tests.ps1
           ./tests/scripts/OwnedLabBuild.Tests.ps1 -Mode ToolchainContract
@@ -125,6 +129,14 @@ jobs:
           ./tests/scripts/ManagedPayloadClosure.Tests.ps1 -BuildDirectory ./artifacts/testing-package-build -HostDirectory ./.host/project-workbench/artifacts/native/app -PluginCommit ((git rev-parse HEAD).Trim()) -HostCommit '655d7b6496067daad7c5e4cefb1f1da1b8379536'
           dotnet run --project tests/Workbench.Testing.PackageProbe -c Release -- ./artifacts/native/testing-plugin/workbench-testing-plugin-0.2.0.zip
           if ($LASTEXITCODE -ne 0) { throw 'Real host package-store install refused the independent ZIP.' }
+      - name: Build and verify paired synthetic source fixture
+        shell: pwsh
+        run: |
+          ./scripts/package-testing-source-fixture.ps1
+          ./tests/scripts/TestingSourceFixtureDelivery.Tests.ps1 -Directory ./artifacts/native/source-acceptance-fixture -ProductionDirectory ./artifacts/native/source-paired-production
+          ./tests/scripts/ManagedSourceFixtureClosure.Tests.ps1 -BuildDirectory ./artifacts/testing-source-package-build -HostDirectory ./.host/project-workbench/artifacts/native/app -PluginCommit ((git rev-parse HEAD).Trim()) -HostCommit '655d7b6496067daad7c5e4cefb1f1da1b8379536'
+          dotnet run --project tests/Workbench.Testing.PackageProbe -c Release -- ./artifacts/native/source-acceptance-fixture/workbench-testing-source-acceptance-0.2.0.zip --profile SourceAcceptance --report ./artifacts/native/source-fixture-probes/package-install.json
+          if ($LASTEXITCODE -ne 0) { throw 'Host package-store install refused the source fixture ZIP.' }
       - name: Native host-panel and process restore using exact migrated ZIP
         shell: pwsh
         run: |
@@ -143,6 +155,7 @@ jobs:
             artifacts/host-sdk/manifest.json
             artifacts/native/testing-probes/
             artifacts/native/owned-lab-probes/
+            artifacts/native/source-fixture-probes/
           if-no-files-found: error
           retention-days: 7
       - uses: actions/upload-artifact@v7.0.2
