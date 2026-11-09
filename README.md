@@ -47,6 +47,12 @@ dotnet test Workbench.Testing.Core.slnx -c Release
 
 所有自动验证只使用隔离合成项目、内存 HTTP 和合成凭据，不使用真实 Webhook、钉钉、用户目录或真实业务服务。真实 Figma/OpenAI 控件需用户明确发起并人工审核；自动测试不代表真实 provider 验收。Windows 11 的选择器、IME、DPI、可访问性等人工检查仍单独待验。
 
+## 多机测试的实验基础
+
+仓库另有仅用于验证的 `Workbench.Testing.Lan` 组件：它只允许本机回环连接，以双方证书指纹授权后执行固定的合成字符串比较并返回结果。它不会自动启动、不包含在现有安装包中，也不能发现或连接其他电脑。断线后不自动重试；去重只在当前进程有效。
+
+这不是可用的远程桌面、真实跨机派单、长期配对或网络模拟功能。它们的方向、权限边界和候选技术见[局域网多机设计草案](docs/lan-multidevice-design.md)；当前验证仅运行隔离的本机合成数据。
+
 - [迁移后验证边界](docs/windows-verification.md)
 - [插件安装与操作](docs/testing-plugin.md)
 - [Figma 只读导入](docs/figma-readonly-capture.md)
