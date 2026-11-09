@@ -120,6 +120,18 @@ try {
     Refuses { & $module { Assert-TestingSourceIdentity -RecordedCommit ('b' * 40) -RecordedDirty $false -CurrentCommit ('a' * 40) -CurrentDirty $false } } 'TestingCurrentSourceMismatch'
     Refuses { & $module { Assert-TestingSourceIdentity -RecordedCommit ('a' * 40) -RecordedDirty $true -CurrentCommit ('a' * 40) -CurrentDirty $false } } 'TestingCurrentSourceMismatch'
     Refuses { & $module { Assert-TestingSourceIdentity -RecordedCommit ('a' * 40) -RecordedDirty $false -CurrentCommit ('a' * 40) -CurrentDirty $true } } 'TestingCurrentSourceMismatch'
+    foreach ($mutation in @('missing-managed-audit','changed-managed-audit')) {
+        Remove-Item $temp -Recurse -Force
+        New-Item $temp -ItemType Directory | Out-Null
+        Copy-Item (Join-Path $Directory '*') $temp -Recurse
+        $metadata = Get-Content (Join-Path $temp 'provenance.json') -Raw | ConvertFrom-Json -AsHashtable
+        if ($mutation -eq 'missing-managed-audit') { $metadata.Remove('managed') }
+        else { $metadata.managed.assemblies[0].sha256 = '0' * 64 }
+        $metadata | ConvertTo-Json -Depth 20 | Set-Content (Join-Path $temp 'provenance.json')
+        Refresh-Sums $temp
+        $expected = if ($mutation -eq 'missing-managed-audit') { 'TestingManagedAuditMissing' } else { 'TestingManagedAuditMismatch' }
+        Refuses { Test-TestingPluginDelivery -Directory $temp -AllowReferenceOnly:$AllowReferenceOnly } $expected
+    }
     foreach ($mutation in @('extra-sdk','duplicate-manifest','changed-entry','wrong-manifest')) {
         Remove-Item $temp -Recurse -Force
         New-Item $temp -ItemType Directory | Out-Null

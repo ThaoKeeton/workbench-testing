@@ -99,6 +99,15 @@ class RepositoryContractTests(unittest.TestCase):
             self.assertEqual(record['length'], len(content), record['path'])
             self.assertEqual(record['sha256'], hashlib.sha256(content).hexdigest(), record['path'])
 
+    def test_source_report_supplement_matches_recorded_host_bytes(self):
+        supplement = json.loads((ROOT / 'eng/source-report-supplement.json').read_text())
+        self.assertEqual('b1a3e9c9963c2d75798a6068f99a6270d81bd074', supplement['sourceCommit'])
+        self.assertEqual(2, len(supplement['files']))
+        for record in supplement['files']:
+            content = (ROOT / record['path']).read_bytes()
+            self.assertEqual(record['length'], len(content), record['path'])
+            self.assertEqual(record['sha256'], hashlib.sha256(content).hexdigest(), record['path'])
+
 
 if __name__ == '__main__':
     unittest.main()

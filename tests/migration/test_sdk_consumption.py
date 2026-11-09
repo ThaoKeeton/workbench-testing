@@ -108,7 +108,7 @@ class SdkConsumptionTests(unittest.TestCase):
             data['referenceOnly'] = False
             manifest.write_text(json.dumps(data))
             (root / 'scripts').mkdir()
-            for name in ['TestingPluginDelivery.psm1', 'verify-sdk-consumption.py']:
+            for name in ['TestingPluginDelivery.psm1', 'TestingManagedPayloadAudit.cs', 'verify-sdk-consumption.py']:
                 shutil.copyfile(ROOT / 'scripts' / name, root / 'scripts' / name)
             module_path = str(root / 'scripts/TestingPluginDelivery.psm1').replace("'", "''")
             command = ("$ErrorActionPreference = 'Stop'; Import-Module -Name '" + module_path + "' -Force; "
