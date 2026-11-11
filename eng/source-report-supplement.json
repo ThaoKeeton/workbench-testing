@@ -1,8 +1,9 @@
 {
   "sourceRepository": "https://github.com/ThaoKeeton/project-workbench",
   "sourceCommit": "b1a3e9c9963c2d75798a6068f99a6270d81bd074",
+  "adaptation": "Original host bytes are preserved at baselinePath; active paths add cross-repository identity binding and regressions.",
   "files": [
-    { "path": "scripts/SourceAcceptanceProbe.psm1", "length": 38728, "sha256": "174d09557cc9c60de5898c533199d17828607196b6782a144179ad61b874c6d4" },
-    { "path": "tests/scripts/SourceAcceptanceProbe.Tests.ps1", "length": 30653, "sha256": "44c89cbc77b0526bf078dad49e7ca811774d1b80dee45e38c0056621b0d2ba45" }
+    { "path": "scripts/SourceAcceptanceProbe.psm1", "baselinePath": "eng/baselines/source-report/SourceAcceptanceProbe.psm1", "length": 38728, "sha256": "174d09557cc9c60de5898c533199d17828607196b6782a144179ad61b874c6d4" },
+    { "path": "tests/scripts/SourceAcceptanceProbe.Tests.ps1", "baselinePath": "eng/baselines/source-report/SourceAcceptanceProbe.Tests.ps1", "length": 30653, "sha256": "44c89cbc77b0526bf078dad49e7ca811774d1b80dee45e38c0056621b0d2ba45" }
   ]
 }

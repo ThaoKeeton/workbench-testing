@@ -259,18 +259,24 @@ function Assert-SourceAcceptanceHolds($Native) {
     }
 }
 function Assert-SourceAcceptanceNative($Native, [string]$ReportPath, [string]$Phase, [string]$Root, [int]$ProcessId, [long]$Birth,
-    [string]$PackageHash, [string]$SourceCommit, [string]$HostExeHash, [string]$HostDllHash, [string[]]$LeaseRoots) {
-    Assert-SourceAcceptanceKeys $Native @('schemaVersion','kind','succeeded','phase','userRoot','sourceCommit','packageSha256','hostExeSha256','hostDllSha256',
+    [string]$PackageHash, [string]$SourceCommit, [string]$HostExeHash, [string]$HostDllHash, [string[]]$LeaseRoots, [AllowNull()][Collections.IDictionary]$CrossIdentity) {
+    $keys = @('schemaVersion','kind','succeeded','phase','userRoot','sourceCommit','packageSha256','hostExeSha256','hostDllSha256',
         'processId','processCreationFileTimeUtc','actualWindowClosed','rootsRetired','roots','osDescription','processArchitecture','checks','observations','holds','records','evidence','completedUtc')
+    if ($null -ne $CrossIdentity) { $keys += @('hostSourceCommit','sdkSourceCommit','pairedProductionSha256','sdkManifestSha256','sdkCorePackageSha256','sdkWinUiPackageSha256','hostCoreSdkSha256','hostWinUiSdkSha256') }
+    Assert-SourceAcceptanceKeys $Native $keys
     Assert-SourceAcceptanceStrings $Native @('kind','phase','userRoot','sourceCommit','packageSha256','hostExeSha256','hostDllSha256','osDescription','processArchitecture')
     if (-not (Test-SourceAcceptanceUtc $Native.completedUtc)) { throw 'SourceTimestampInvalid' }
-    if (-not (Test-SourceAcceptanceInteger $Native.schemaVersion 1 1) -or $Native.kind -cne 'SourceAcceptanceNative' -or $Native.succeeded -isnot [bool] -or -not $Native.succeeded -or
+    $expectedSchema = if ($null -eq $CrossIdentity) { 1 } else { 2 }
+    if (-not (Test-SourceAcceptanceInteger $Native.schemaVersion $expectedSchema $expectedSchema) -or $Native.kind -cne 'SourceAcceptanceNative' -or $Native.succeeded -isnot [bool] -or -not $Native.succeeded -or
         $Native.phase -cne $Phase -or $Native.userRoot -cne $Root -or -not (Test-SourceAcceptanceInteger $Native.processId 1 ([int]::MaxValue)) -or $Native.processId -ne $ProcessId -or
         -not (Test-SourceAcceptanceInteger $Native.processCreationFileTimeUtc 1) -or $Native.processCreationFileTimeUtc -ne $Birth -or
         $Native.actualWindowClosed -isnot [bool] -or -not $Native.actualWindowClosed -or $Native.rootsRetired -isnot [bool] -or -not $Native.rootsRetired -or
         $Native.osDescription -isnot [string] -or $Native.osDescription.Length -lt 1 -or $Native.osDescription.Length -gt 256 -or $Native.processArchitecture -cne 'X64') { throw 'SourceNativeIdentityOrRetirementMissing' }
     foreach ($pair in @(@('packageSha256',$PackageHash),@('hostExeSha256',$HostExeHash),@('hostDllSha256',$HostDllHash),@('sourceCommit',$SourceCommit))) {
         if ($Native[$pair[0]] -isnot [string] -or $Native[$pair[0]] -cne $pair[1]) { throw 'SourceProvenanceMismatch' }
+    }
+    if ($null -ne $CrossIdentity) {
+        foreach ($key in $CrossIdentity.Keys) { if ($Native[$key] -isnot [string] -or $Native[$key] -cne $CrossIdentity[$key]) { throw 'SourceProvenanceMismatch' } }
     }
     Assert-SourceAcceptanceRoot $Root
     if ($Native.roots -isnot [array] -or $Native.roots.Count -lt 1 -or $Native.roots.Count -gt 2) { throw 'SourceLeaseRootsInvalid' }
@@ -327,7 +333,8 @@ function Complete-SourceAcceptanceProbeReport {
         [Parameter(Mandatory)][string]$ExpectedRoot, [AllowEmptyCollection()][string[]]$LeaseRoots = @(),
         [Parameter(Mandatory)][string]$ExpectedPackageHash, [Parameter(Mandatory)][string]$ExpectedSourceCommit,
         [Parameter(Mandatory)][string]$ExpectedHostExeHash, [Parameter(Mandatory)][string]$ExpectedHostDllHash,
-        [bool]$ObservationFailed = $false, [bool]$Terminated = $false, [AllowNull()][Collections.IDictionary]$ExpectedSeed = $null)
+        [bool]$ObservationFailed = $false, [bool]$Terminated = $false, [AllowNull()][Collections.IDictionary]$ExpectedSeed = $null,
+        [AllowNull()][Collections.IDictionary]$ExpectedCrossIdentity = $null)
     $runnerPath = [IO.Path]::ChangeExtension($ReportPath,'runner.json'); Assert-SourceAcceptanceNoLinks $runnerPath
     if (Test-Path -LiteralPath $runnerPath) { throw 'SourcePhaseAlreadyCompleted' }
     $reason = $null; $nativeStatus = 'unavailable'; $native = $null
@@ -339,8 +346,16 @@ function Complete-SourceAcceptanceProbeReport {
             -not (Test-SourceAcceptanceInteger $ProcessExitFileTimeUtc $ProcessCreationFileTimeUtc)) { throw 'SourceProcessFailed' }
         foreach ($expected in @($ExpectedPackageHash,$ExpectedHostExeHash,$ExpectedHostDllHash)) { if (-not (Test-SourceAcceptanceHex $expected 64)) { throw 'SourceExpectedIdentityInvalid' } }
         if (-not (Test-SourceAcceptanceHex $ExpectedSourceCommit 40)) { throw 'SourceExpectedIdentityInvalid' }
+        if ($null -ne $ExpectedCrossIdentity) {
+            $crossKeys = @('hostSourceCommit','sdkSourceCommit','pairedProductionSha256','sdkManifestSha256','sdkCorePackageSha256','sdkWinUiPackageSha256','hostCoreSdkSha256','hostWinUiSdkSha256')
+            Assert-SourceAcceptanceKeys $ExpectedCrossIdentity $crossKeys
+            foreach ($key in $crossKeys) {
+                $length = if ($key.EndsWith('Commit',[StringComparison]::Ordinal)) { 40 } else { 64 }
+                if (-not (Test-SourceAcceptanceHex $ExpectedCrossIdentity[$key] $length)) { throw 'SourceExpectedIdentityInvalid' }
+            }
+        }
         $native = Read-SourceAcceptanceJson $ReportPath; $nativeStatus = 'available'
-        Assert-SourceAcceptanceNative $native $ReportPath $ExpectedPhase $ExpectedRoot $ProcessId $ProcessCreationFileTimeUtc $ExpectedPackageHash $ExpectedSourceCommit $ExpectedHostExeHash $ExpectedHostDllHash $LeaseRoots
+        Assert-SourceAcceptanceNative $native $ReportPath $ExpectedPhase $ExpectedRoot $ProcessId $ProcessCreationFileTimeUtc $ExpectedPackageHash $ExpectedSourceCommit $ExpectedHostExeHash $ExpectedHostDllHash $LeaseRoots $ExpectedCrossIdentity
         if ($ExpectedPhase -ceq 'verify') { Assert-SourceAcceptanceRestart $ExpectedSeed $native }
     } catch {
         $allowed = @('SourceObservationFailed','SourceProcessTerminated','SourceProcessStillOwned','SourceProcessFailed','SourceNativeIdentityOrRetirementMissing',
@@ -352,6 +367,7 @@ function Complete-SourceAcceptanceProbeReport {
         hasExited = $HasExited; exitCode = $ExitCode; terminated = $Terminated; observationFailed = $ObservationFailed; leaseRoots = @($LeaseRoots);
         nativeReport = $nativeStatus; runnerError = $reason; sourceCommit = $ExpectedSourceCommit; packageSha256 = $ExpectedPackageHash;
         hostExeSha256 = $ExpectedHostExeHash; hostDllSha256 = $ExpectedHostDllHash; nativeReportSha256 = $null }
+    if ($null -eq $reason -and $null -ne $ExpectedCrossIdentity) { $runner.crossIdentity = $ExpectedCrossIdentity }
     if ($null -eq $reason) { $runner.nativeReportSha256 = Get-SourceAcceptanceHash (Read-SourceAcceptanceBytes $ReportPath 262144) }
     Write-SourceAcceptanceNewJson $runnerPath $runner
     if ($null -ne $reason) {
@@ -368,6 +384,7 @@ function Invoke-SourceAcceptanceProbePhases {
         [Parameter(Mandatory)][string]$StopFigmaRoot, [Parameter(Mandatory)][string]$StopAiRoot,
         [Parameter(Mandatory)][string]$ExpectedPackageHash, [Parameter(Mandatory)][string]$ExpectedSourceCommit,
         [Parameter(Mandatory)][string]$ExpectedHostExeHash, [Parameter(Mandatory)][string]$ExpectedHostDllHash,
+        [AllowNull()][Collections.IDictionary]$ExpectedCrossIdentity = $null,
         [Parameter(Mandatory)][scriptblock]$Observe)
     foreach ($root in @($SeedRoot,$StopFigmaRoot,$StopAiRoot)) { Assert-SourceAcceptanceRoot $root }
     if (@($SeedRoot,$StopFigmaRoot,$StopAiRoot | Sort-Object -Unique).Count -ne 3) { throw 'SourceRootsMustDiffer' }
@@ -388,7 +405,7 @@ function Invoke-SourceAcceptanceProbePhases {
                 -ProcessExitFileTimeUtc $observation.ProcessExitFileTimeUtc -ExitCode $observation.ExitCode -HasExited $observation.HasExited `
                 -ExpectedPhase $phase -ExpectedRoot $root -LeaseRoots $observation.LeaseRoots -ExpectedPackageHash $ExpectedPackageHash `
                 -ExpectedSourceCommit $ExpectedSourceCommit -ExpectedHostExeHash $ExpectedHostExeHash -ExpectedHostDllHash $ExpectedHostDllHash `
-                -Terminated $observation.Terminated -ObservationFailed ($null -ne $errorRecord) -ExpectedSeed $seed
+                -Terminated $observation.Terminated -ObservationFailed ($null -ne $errorRecord) -ExpectedSeed $seed -ExpectedCrossIdentity $ExpectedCrossIdentity
             if ($phase -ceq 'seed') { $seed = Read-SourceAcceptanceJson $report }
         } catch { if ($null -ne $errorRecord) { throw $errorRecord }; throw }
     }

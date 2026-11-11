@@ -5,3 +5,6 @@ artifacts/
 TestResults/
 __pycache__/
 *.user
+.env
+.env.*
+!.env.example

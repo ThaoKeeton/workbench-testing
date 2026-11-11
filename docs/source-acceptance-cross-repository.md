@@ -1,14 +1,37 @@
 # 拆仓后的源码验收边界
 
-状态：迁移进行中。合成报告校验、夹具配对打包及托管变异回归已经迁入；新版 Windows 宿主的源码验收尚未完成跨仓适配或验证。
+状态：跨仓验收适配已提交到独立开发分支；本分支的 Windows Actions 结果以对应运行记录为准。合成报告测试、打包脚本或 Linux 参考编译通过，都不能单独说明四阶段原生验收已通过。
 
-当前发布基线将插件构建在 `workbench-testing` 的提交，宿主与 SDK 固定在 `project-workbench` 的提交 `655d7b6496067daad7c5e4cefb1f1da1b8379536`。新版源码验收实现位于宿主提交 `b1a3e9c9963c2d75798a6068f99a6270d81bd074`，该宿主实现的 `src/Workbench.App/TestingSourceAcceptanceProbe.cs` 中 `CurrentBindingAsync` 当前要求验收包 `provenance.json` 的 `sourceCommit` 等于宿主程序集的来源提交。拆仓之后这两个提交来自不同仓库，不能再要求相等；旧基线宿主也没有新版源码验收入口。不能通过伪造程序集版本、重写来源记录或把合成报告称作原生结果解决此问题。
+正式 SDK 仍固定在 `project-workbench` 提交 `655d7b6496067daad7c5e4cefb1f1da1b8379536`，版本 0.4.0、API 1。验收专用宿主固定在 `9d7821bddba17fd3f40958f708d1ceee2c770505`，记录于 `eng/host-acceptance.lock.json`。后者包含跨仓报告入口；脚本要求它的所有已锁 SDK 源文件与正式 SDK 基线一致，并拒绝不同提交或有未提交更改的宿主 checkout。插件仍从 `workbench-testing` 自己的干净提交构建；插件提交和宿主提交不需要相同。
 
-恢复实际验收前需要联合宿主和测试仓完成以下工作：
+验收夹具只用于隔离测试。它的来源清单与同次配对的生产包一致地记录插件、宿主和 SDK 来源、SDK 包与清单哈希、宿主程序哈希及托管依赖；宿主还会测量实际 fixture ZIP、生产 ZIP、SDK 包和宿主 SDK DLL，错配即拒绝。测试仓报告验证器独立核对实际启动进程 ID、进程出生时间、退出、租约及报告哈希，并在四个阶段分别核验同一组绑定。原同仓验收报告仍使用内部 schema 1；跨仓原生报告使用内部 schema 2。两者均不是项目数据 schema，项目数据仍为 schema 1。
 
-1. 定义并验证双来源绑定：将宿主仓库和宿主提交、测试仓库和插件提交、SDK 基线、测试包哈希和宿主可执行文件及程序集哈希分别记录；每个值须与实际构建、包内容和公开 Actions 同一运行中核对。版本兼容与允许的宿主基线应明确，不能只放宽为任意不同提交。
-2. 调整宿主的验收入口和报告消费者，使四个进程阶段在重启后仍验证同一套绑定；新增错配插件、宿主、SDK、包、进程身份和重放的拒绝测试。旧报告格式与既有项目数据 schema 的兼容策略需明确，不能把内部探测报告和项目数据混为一谈。
-3. 测试仓已提供 SourceAcceptance 夹具的独立打包、对应生产包字节配对、托管依赖闭包和包结构校验；在连接新版宿主时，还需针对所选宿主版本重新验证这些绑定。保留宿主自己的公共 SDK 与兼容测试。
-4. 使用包含新版入口的明确固定宿主和同次 Actions 产物，在隔离 Windows runner 上执行四阶段合成验收，并检查实际进程、正常退出、租约、受控记录与证据。这里的 Figma/OpenAI 响应仍为进程内合成数据；不连接真实服务、Webhook、钉钉或用户设备。
+Windows x64 上准备独立 checkout 的复现命令（需 .NET 10、PowerShell 7.6+、MSVC x64 和 Windows SDK；测试仓本身须干净）：
 
-本仓 `tests/scripts/SourceAcceptanceProbe.Tests.ps1` 只验证合成报告、拒绝分支及证据不被更改；即使 Linux 和 Windows 上均通过，也不证明真实原生 UI 或远程服务可用。Windows 11 的人工交互、屏幕捕获和多机功能仍需分别验收。
+```powershell
+git clone --no-checkout https://github.com/ThaoKeeton/project-workbench.git .host/project-workbench
+git -C .host/project-workbench checkout --detach 655d7b6496067daad7c5e4cefb1f1da1b8379536
+git clone --no-checkout https://github.com/ThaoKeeton/project-workbench.git .host/acceptance-host
+git -C .host/acceptance-host checkout --detach 9d7821bddba17fd3f40958f708d1ceee2c770505
+$env:WORKBENCH_DISABLE_REAL_SERVICES = 'true'
+$env:WORKBENCH_HOST_PROFILE = 'source-acceptance'
+$env:WORKBENCH_ACCEPTANCE_HOST_ROOT = (Resolve-Path .host/acceptance-host).Path
+$env:WORKBENCH_HOST_APP_DIRECTORY = Join-Path $env:WORKBENCH_ACCEPTANCE_HOST_ROOT 'artifacts/native/app'
+python scripts/verify-acceptance-host.py
+python scripts/prepare-host-sdk.py
+dotnet publish .host/acceptance-host/src/Workbench.App/Workbench.App.csproj -c Release -r win-x64 --self-contained true -o $env:WORKBENCH_HOST_APP_DIRECTORY -p:SourceRevisionId=9d7821bddba17fd3f40958f708d1ceee2c770505
+./scripts/package-testing-source-fixture.ps1
+./scripts/source-acceptance-cross-probe.ps1
+```
+
+脚本要求在验收宿主的自有 `artifacts/native` 目录中创建全新的夹具和配对包目录；已存在时拒绝覆盖。四个阶段依次为 `seed`、`verify`、`stop-figma`、`stop-ai`。摘要里的检查数来自四个原生报告里实际写下的检查，并且必须等于 36；前一阶段失败不会启动后续阶段。输出位于 `artifacts/native/source-acceptance-probes/`。公开 Actions 的 `source-cross-windows` 作业使用隔离的 Windows Server runner 构建，并保存同次报告、两个 ZIP、SDK NuGet 包与清单，以及四个被哈希绑定的宿主可执行文件和程序集。上传前会再跑一次字节复核；作业成功只说明这次 Server 运行的合成证据与本仓锁一致。
+
+重新核对已下载、且目录布局与 Actions 产物一致的证据：
+
+```powershell
+python scripts/verify-cross-acceptance-evidence.py --root <解压后的证据根> --plugin-commit <产生该证据的测试仓提交>
+```
+
+在产生证据的同一检出上可以省略 `--plugin-commit`，此时要求证据中的插件提交等于当前 `HEAD`。脚本核对锁里的宿主提交和 SDK 提交、四个阶段、36 项检查名称，以及 ZIP、清单、包和四个宿主文件的 SHA-256。它不读取或回显用户目录，也不代替 PowerShell 报告校验器对证据正文的检查。产物保留 7 天；过期后该次字节不能再核，需要新的 `source-cross-windows` 运行。固定宿主提交上目前没有宿主仓库的 check run。宿主工作流处于启用状态，不能写成已经暂停。其他分支上的 Windows 结果不能当作这个固定提交的验收。
+
+这里的 Figma/OpenAI 响应为进程内合成数据，不连接真实服务、Webhook、钉钉或用户设备。自动 Windows Server 结果也不代替 Windows 11 24H2+ x64 上真实用户的选择器、输入法、DPI、可访问性和设备交互验收。跨仓证据重新对齐并且完成该项人工验收之前，不要合并相关草稿。局域网和远程桌面能力另见 [后续架构](future-distributed-testing.md)。
