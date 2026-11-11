@@ -24,6 +24,14 @@ dotnet publish .host/acceptance-host/src/Workbench.App/Workbench.App.csproj -c R
 ./scripts/source-acceptance-cross-probe.ps1
 ```
 
-脚本要求在验收宿主的自有 `artifacts/native` 目录中创建全新的夹具和配对包目录；已存在时拒绝覆盖。四个阶段依次为 `seed`、`verify`、`stop-figma`、`stop-ai`，合计 36 项阶段检查；前一阶段失败不会启动后续阶段。输出位于 `artifacts/native/source-acceptance-probes/`。公开 Actions 的 `source-cross-windows` 作业使用隔离 Windows Server runner 构建，并保存同次报告、两个 ZIP、SDK NuGet 包与清单，以及四个被哈希绑定的宿主可执行文件和程序集，便于重新核对字节。
+脚本要求在验收宿主的自有 `artifacts/native` 目录中创建全新的夹具和配对包目录；已存在时拒绝覆盖。四个阶段依次为 `seed`、`verify`、`stop-figma`、`stop-ai`。摘要里的检查数来自四个原生报告里实际写下的检查，并且必须等于 36；前一阶段失败不会启动后续阶段。输出位于 `artifacts/native/source-acceptance-probes/`。公开 Actions 的 `source-cross-windows` 作业使用隔离的 Windows Server runner 构建，并保存同次报告、两个 ZIP、SDK NuGet 包与清单，以及四个被哈希绑定的宿主可执行文件和程序集。上传前会再跑一次字节复核；作业成功只说明这次 Server 运行的合成证据与本仓锁一致。
 
-这里的 Figma/OpenAI 响应为进程内合成数据，不连接真实服务、Webhook、钉钉或用户设备。自动 Windows Server 结果也不代替 Windows 11 上真实用户的选择器、输入法、DPI、可访问性和设备交互验收；局域网和远程桌面能力另见 [后续架构](future-distributed-testing.md)。
+重新核对已下载、且目录布局与 Actions 产物一致的证据：
+
+```powershell
+python scripts/verify-cross-acceptance-evidence.py --root <解压后的证据根> --plugin-commit <产生该证据的测试仓提交>
+```
+
+在产生证据的同一检出上可以省略 `--plugin-commit`，此时要求证据中的插件提交等于当前 `HEAD`。脚本核对锁里的宿主提交和 SDK 提交、四个阶段、36 项检查名称，以及 ZIP、清单、包和四个宿主文件的 SHA-256。它不读取或回显用户目录，也不代替 PowerShell 报告校验器对证据正文的检查。产物保留 7 天；过期后该次字节不能再核，需要新的 `source-cross-windows` 运行。固定宿主提交上目前没有宿主仓库的 check run。宿主工作流处于启用状态，不能写成已经暂停。其他分支上的 Windows 结果不能当作这个固定提交的验收。
+
+这里的 Figma/OpenAI 响应为进程内合成数据，不连接真实服务、Webhook、钉钉或用户设备。自动 Windows Server 结果也不代替 Windows 11 24H2+ x64 上真实用户的选择器、输入法、DPI、可访问性和设备交互验收。跨仓证据重新对齐并且完成该项人工验收之前，不要合并相关草稿。局域网和远程桌面能力另见 [后续架构](future-distributed-testing.md)。

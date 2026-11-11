@@ -78,6 +78,7 @@ class RepositoryContractTests(unittest.TestCase):
         self.assertIn('pull_request:', text)
         self.assertIn('push:', text)
         self.assertIn('WORKBENCH_DISABLE_REAL_SERVICES:', text)
+        self.assertIn('scripts/verify-cross-acceptance-evidence.py', text)
         self.assertNotIn('secrets.', text)
         self.assertNotIn('secrets:', text)
         self.assertIn('permissions:\n  contents: read', text)

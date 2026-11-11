@@ -102,6 +102,9 @@ jobs:
           if ($LASTEXITCODE -ne 0) { throw 'Acceptance host source verification failed.' }
           python scripts/prepare-host-sdk.py
           if ($LASTEXITCODE -ne 0) { throw 'Pinned SDK preparation failed.' }
+      - name: Refuse mismatched synthetic cross-repository reports
+        shell: pwsh
+        run: ./tests/scripts/SourceAcceptanceProbe.Tests.ps1
       - name: Publish isolated acceptance host
         shell: pwsh
         run: |
@@ -120,6 +123,11 @@ jobs:
       - name: Run four isolated synthetic Windows phases
         shell: pwsh
         run: ./scripts/source-acceptance-cross-probe.ps1
+      - name: Re-verify retained cross-acceptance bytes
+        shell: pwsh
+        run: |
+          python scripts/verify-cross-acceptance-evidence.py --root .
+          if ($LASTEXITCODE -ne 0) { throw 'Cross acceptance evidence verification failed.' }
       - uses: actions/upload-artifact@v7.0.2
         if: always()
         with:

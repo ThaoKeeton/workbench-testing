@@ -121,8 +121,18 @@ $completed = @(Invoke-SourceAcceptanceProbePhases -OutputDirectory $output -Seed
     }
 })
 # Validation completed without changing native report bytes or backfilling native Closed/birth.
+# Count the checks that were actually written. Do not stamp a fixed 36 onto a different set.
+$qualified = 0
+foreach ($phaseName in @('seed','verify','stop-figma','stop-ai')) {
+    $native = Get-Content -LiteralPath (Join-Path $output "$phaseName.json") -Raw -Encoding utf8 | ConvertFrom-Json
+    $written = @($native.checks).Count
+    $expected = @(& $module { param($p) Get-SourceAcceptanceRequiredChecks $p } $phaseName).Count
+    if ($written -ne $expected) { throw 'SourcePhaseCheckCountMismatch' }
+    $qualified += $written
+}
+if ($qualified -ne 36) { throw 'SourcePhaseCheckCountMismatch' }
 & $module { param($p,$d) Write-SourceAcceptanceNewJson $p $d } (Join-Path $output 'summary.json') @{
     schemaVersion=2; kind='SourceAcceptanceSummary'; succeeded=$true; sourceCommit=$source; packageSha256=$packageHash; hostExeSha256=$hostExeHash; hostDllSha256=$hostDllHash; crossIdentity=$cross;
-    seedRoot=$seedRoot; stopFigmaRoot=$stopFigmaRoot; stopAiRoot=$stopAiRoot; phases=$completed; phaseQualifiedChecks=36;
+    seedRoot=$seedRoot; stopFigmaRoot=$stopFigmaRoot; stopAiRoot=$stopAiRoot; phases=$completed; phaseQualifiedChecks=$qualified;
     limits='Actual installed synthetic source controls and Windows CurrentUser DPAPI. Terminal in-memory HTTP only; generated cases manual, no AUT execution. Live services and Windows11 human acceptance remain separate.' }
 Write-Host "Installed synthetic native source acceptance completed: $output"
